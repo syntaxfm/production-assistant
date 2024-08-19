@@ -3,7 +3,7 @@
   import { invoke } from "@tauri-apps/api/core";
 </script>
 
-<div class="container">
+<div class="content">
   <h1>My Projects</h1>
   <div class="grid">
     <button>+ New Project</button>

@@ -5,4 +5,6 @@
 	data.sync();
 </script>
 
-{@render children()}
+<main class="layout">
+	{@render children()}
+</main>

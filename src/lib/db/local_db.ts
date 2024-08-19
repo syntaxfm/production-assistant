@@ -1,3 +1,4 @@
+import type { Project } from "$state/Project.svelte";
 import Dexie from "dexie";
 
 class LocalDB extends Dexie {

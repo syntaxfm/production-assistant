@@ -22,6 +22,7 @@
 
   --fg: light-dark(#000, #fff);
   --bg: light-dark(#fff, #000);
+  --tint-or-shade: color-mix(in oklab, var(--fg), transparent 90%);
   color-scheme: light dark;
 }
 
@@ -257,4 +258,10 @@ select {
     margin: 0;
     padding: 0;
   }
+}
+
+button,
+.button {
+  transition: 0.2s ease all;
+  cursor: pointer;
 }

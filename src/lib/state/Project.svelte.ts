@@ -4,6 +4,7 @@ import { generate_id } from '../utils/date';
 
 export interface Project {
 	id: string;
+	notes?: string;
 	name?: string;
 }
 
@@ -25,6 +26,7 @@ function createData() {
 	async function add() {
 		const db_project = {
 			id: String(generate_id()),
+			notes: '',
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
 			name: 'New Project'

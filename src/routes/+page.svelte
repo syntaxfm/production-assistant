@@ -25,7 +25,7 @@
 	<div class="grid">
 		<button onclick={app_data.add}>+ New Project</button>
 		{#each app_data.projects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) as project}
-			<a class="button" href="project/{project.id}">
+			<a class="button" href="/project/{project.id}">
 				<h2>
 					{project.name}
 				</h2>

@@ -1,13 +1,12 @@
 <script lang="ts">
 	import 'temporal-polyfill/global';
-  import { onNavigate } from "$app/navigation";
-	import { app_data } from "$state/Project.svelte";
+	import { onNavigate } from '$app/navigation';
+	import { app_data } from '$state/Project.svelte';
 	import './style.css';
-	let {children} = $props();
+	let { children } = $props();
 	app_data.sync();
 
-
-		onNavigate(async (navigation) => {
+	onNavigate(async (navigation) => {
 		if (!document.startViewTransition) return;
 
 		return new Promise((oldStateCaptureResolve) => {

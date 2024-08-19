@@ -1,32 +1,42 @@
 {
-  "name": "syntax-production-assistant",
-  "version": "0.1.0",
-  "description": "",
-  "type": "module",
-  "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "tauri": "tauri"
-  },
-  "license": "MIT",
-  "dependencies": {
-    "@tauri-apps/api": ">=2.0.0-rc.0",
-    "@tauri-apps/plugin-shell": ">=2.0.0-rc.0",
-    "dexie": "^4.0.8",
-    "temporal-polyfill": "^0.2.5"
-  },
-  "devDependencies": {
-    "@sveltejs/adapter-static": "^3.0.1",
-    "@sveltejs/kit": "^2.5.18",
-    "@sveltejs/vite-plugin-svelte": "^3.0.0",
-    "@tauri-apps/cli": ">=2.0.0-rc.0",
-    "svelte": "5.0.0-next.225",
-    "svelte-check": "^3.6.0",
-    "tslib": "^2.4.1",
-    "typescript": "^5.0.0",
-    "vite": "^5.0.3"
-  }
+	"name": "syntax-production-assistant",
+	"version": "0.1.0",
+	"description": "",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"tauri": "tauri",
+		"lint": "prettier --check . && eslint .",
+		"format": "prettier --write ."
+	},
+	"license": "MIT",
+	"dependencies": {
+		"@tauri-apps/api": ">=2.0.0-rc.0",
+		"@tauri-apps/plugin-shell": ">=2.0.0-rc.0",
+		"dexie": "^4.0.8",
+		"temporal-polyfill": "^0.2.5"
+	},
+	"devDependencies": {
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-svelte": "^2.36.0",
+		"eslint": "^9.0.0",
+		"prettier-plugin-svelte": "^3.1.2",
+		"@sveltejs/adapter-static": "^3.0.1",
+		"@sveltejs/kit": "^2.5.18",
+		"@sveltejs/vite-plugin-svelte": "^3.0.0",
+		"@tauri-apps/cli": ">=2.0.0-rc.0",
+		"@types/eslint": "^9.6.0",
+		"globals": "^15.0.0",
+		"prettier": "^3.1.1",
+		"svelte-check": "^3.6.0",
+		"svelte": "5.0.0-next.225",
+		"tslib": "^2.4.1",
+		"typescript-eslint": "^8.0.0",
+		"typescript": "^5.0.0",
+		"vite": "^5.0.3"
+	}
 }

@@ -7,7 +7,10 @@
 </script>
 
 <div class="content">
-  <h1>My Projects</h1>
+  <div class="settings flex">
+    <h1>My Projects</h1>
+    <button onclick={app_data.export_to_json}>Export Data</button>
+  </div>
   <div class="grid">
     <button onclick={app_data.add}>+ New Project</button>
     {#each app_data.projects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) as project}
@@ -51,5 +54,14 @@
   button {
     justify-content: center;
     align-items: center;
+  }
+  .settings {
+    justify-content: space-between;
+    align-items: center;
+    button {
+      padding: 5px 10px;
+      font-size: var(--fs-xs);
+      aspect-ratio: 0;
+    }
   }
 </style>

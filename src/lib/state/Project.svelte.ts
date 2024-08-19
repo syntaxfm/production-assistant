@@ -38,6 +38,36 @@ function createData() {
     project = await localDB.projects.get(id);
   }
 
+  async function export_to_json() {
+    try {
+      // Fetch all invoices from the database
+      const all_projects = await localDB.projects.toArray();
+
+      // Convert the data to a JSON string
+      const jsonString = JSON.stringify(all_projects, null, 2);
+
+      // Create a Blob with the JSON data
+      const blob = new Blob([jsonString], { type: "application/json" });
+
+      // Create a temporary URL for the Blob
+      const url = URL.createObjectURL(blob);
+
+      // Create a link element and trigger the download
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "syntax_assistant_database_export.json";
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting database:", error);
+      alert("An error occurred while exporting the database. Please try again.");
+    }
+  }
+
   return {
     get projects() {
       return projects;
@@ -49,6 +79,7 @@ function createData() {
     save,
     add,
     load,
+    export_to_json,
   };
 }
 

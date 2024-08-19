@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { iso_to_plain_date } from "$/lib/utils/date";
   import { app_data } from "$state/Project.svelte";
   import { invoke } from "@tauri-apps/api/core";
 
@@ -15,7 +16,7 @@
           {project.name}
         </h2>
         <p>
-          Created: {project.createdAt}
+          Created: {iso_to_plain_date(project.createdAt)}
         </p>
       </a>
     {/each}

@@ -1,53 +1,6 @@
-export const get_circular_array_item = (array: string[], index: number) => {
-  // Ensure the index is a positive number then get the modulus with the array length
-  const valid_index = Math.abs(index) % array.length;
-  return array[valid_index];
-};
-
-export function get_days_in_each_month(year: number) {
-  const months = [];
-  for (let month = 1; month <= 12; month++) {
-    const startDate = Temporal.PlainDate.from({ year, month, day: 1 });
-    const endDate = startDate.add({ months: 1 }).subtract({ days: 1 });
-    const daysInMonth = endDate.day - startDate.day + 1;
-    months.push(daysInMonth);
-  }
-  return months;
-}
-
 export function get_days_in_month(active_date: string) {
   const date = Temporal.PlainDate.from(active_date);
   return date.daysInMonth;
-}
-
-export function string_2_bool(val: string | undefined) {
-  return val === "true";
-}
-
-export function jump_2_today() {
-  const buttons = document.querySelectorAll('button[data-today="true"]');
-
-  buttons.forEach((button) => {
-    const container = document.querySelector("#visible_habits");
-
-    if (container) {
-      // Calculate the offset of the button within the container
-      const buttonOffset = button.offsetLeft;
-
-      // Calculate the center position
-      const centerPosition = buttonOffset - container.offsetWidth / 2 + button.offsetWidth / 2;
-
-      // Scroll the container
-      container.scrollLeft = centerPosition;
-    }
-  });
-}
-export function toggle_values<A, B>(VAL: A | B, VAL_1: A, VAL_2: B): A | B {
-  return VAL === VAL_1 ? VAL_2 : VAL_1;
-}
-
-export function check_is_password_valid(password: string) {
-  return typeof password === "string" && password.length >= 6 && password.length <= 255;
 }
 
 // incoming date format: 2024-01-01
@@ -71,7 +24,11 @@ export function format_month_year(date = Temporal.Now.plainDateISO()) {
 
 // Gets the date from iso string
 export function iso_to_plain_date(date?: string | null) {
-  return date ? Temporal.PlainDate.from(date) : Temporal.Now.plainDateISO();
+  if (date) {
+    const date_only = date.split("T")[0];
+    Temporal.PlainDate.from(date_only);
+  }
+  return Temporal.Now.plainDateISO();
 }
 
 // Function to format a Temporal ISO date to 'MM/dd'
@@ -83,10 +40,6 @@ export function format_mmdd(isoString: string): string {
 export function is_in_future(iso_string: string) {
   const date = Temporal.PlainDate.from(iso_string);
   return Temporal.PlainDate.compare(date, Temporal.Now.plainDateISO()) > 0;
-}
-
-export function to_percentage(value: number): string {
-  return `${value.toFixed(2)}%`;
 }
 
 export function generate_id(): number {

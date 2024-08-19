@@ -1,5 +1,6 @@
 import { goto } from "$app/navigation";
 import { localDB } from "../db/local_db";
+import { generate_id } from "../utils/date";
 
 export interface Project {
   id: string;
@@ -23,7 +24,7 @@ function createData() {
 
   async function add() {
     let db_project = {
-      id: Date.now().toString(36),
+      id: String(generate_id()),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       name: "New Project",

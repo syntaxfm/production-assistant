@@ -68,6 +68,42 @@ function createData() {
     }
   }
 
+  async function import_from_json(event) {
+    try {
+      const file = event.target.files[0];
+      if (!file) {
+        throw new Error("No file selected");
+      }
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const jsonData = JSON.parse(e.target.result);
+
+          // Start a transaction
+          await localDB.transaction("rw", localDB.projects, async () => {
+            // Clear existing data (optional, remove if you want to keep existing data)
+            await localDB.projects.clear();
+
+            // Add all projects from the JSON file
+            await localDB.projects.bulkAdd(jsonData);
+            await sync();
+          });
+
+          alert("Data imported successfully!");
+        } catch (error) {
+          console.error("Error parsing or importing JSON:", error);
+          alert("Error importing data. Please check the file format and try again.");
+        }
+      };
+
+      reader.readAsText(file);
+    } catch (error) {
+      console.error("Error importing database:", error);
+      alert("An error occurred while importing the database. Please try again.");
+    }
+  }
+
   return {
     get projects() {
       return projects;
@@ -80,6 +116,7 @@ function createData() {
     add,
     load,
     export_to_json,
+    import_from_json,
   };
 }
 

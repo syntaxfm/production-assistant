@@ -9,7 +9,18 @@
 <div class="content">
   <div class="settings flex">
     <h1>My Projects</h1>
-    <button onclick={app_data.export_to_json}>Export Data</button>
+    <div class="flex">
+      <label
+        >Import Data
+        <input
+          class="visually-hidden"
+          type="file"
+          accept="application/json"
+          oninput={app_data.import_from_json}
+        /></label
+      >
+      <button onclick={app_data.export_to_json}>Export Data</button>
+    </div>
   </div>
   <div class="grid">
     <button onclick={app_data.add}>+ New Project</button>
@@ -28,6 +39,7 @@
 
 <style>
   button,
+  label,
   .button {
     aspect-ratio: 16/9;
     border-radius: 4px;
@@ -58,7 +70,8 @@
   .settings {
     justify-content: space-between;
     align-items: center;
-    button {
+    button,
+    label {
       padding: 5px 10px;
       font-size: var(--fs-xs);
       aspect-ratio: 0;

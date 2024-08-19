@@ -22,6 +22,9 @@
 
   --fg: light-dark(#000, #fff);
   --bg: light-dark(#fff, #000);
+
+  --yellow: #fabf47;
+
   --tint-or-shade: color-mix(in oklab, var(--fg), transparent 90%);
   color-scheme: light dark;
 }

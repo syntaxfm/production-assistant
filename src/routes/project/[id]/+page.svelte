@@ -11,3 +11,10 @@
 >
   {app_data.project.name}
 </h1>
+
+<style>
+  h1:focus {
+    outline: none;
+    border-bottom: solid 1px var(--yellow);
+  }
+</style>

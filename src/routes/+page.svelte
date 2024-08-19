@@ -10,7 +10,14 @@
   <div class="grid">
     <button onclick={app_data.add}>+ New Project</button>
     {#each app_data.projects as project}
-      <a class="button" href="project/{project.id}">{project.name}</a>
+      <a class="button" href="project/{project.id}">
+        <h2>
+          {project.name}
+        </h2>
+        <p>
+          Created: {project.createdAt}
+        </p>
+      </a>
     {/each}
   </div>
 </div>
@@ -22,8 +29,26 @@
     border-radius: 4px;
     border: solid 1px var(--fg);
     background-color: transparent;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    justify-content: space-between;
+    padding: 20px;
+    color: var(--fg);
+    h2 {
+      margin: 0;
+      font-size: var(--fs-base);
+    }
+    p {
+      margin: 0;
+      font-size: var(--fs-xxs);
+    }
     &:hover {
       background: var(--tint-or-shade);
     }
+  }
+  button {
+    justify-content: center;
+    align-items: center;
   }
 </style>

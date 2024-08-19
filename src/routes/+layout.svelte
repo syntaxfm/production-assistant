@@ -1,4 +1,5 @@
 <script lang="ts">
+	import 'temporal-polyfill/global';
   import { onNavigate } from "$app/navigation";
 	import { app_data } from "$state/Project.svelte";
 	import './style.css';

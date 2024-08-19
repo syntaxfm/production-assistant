@@ -26,6 +26,7 @@
 	--yellow: #fabf47;
 
 	--tint-or-shade: color-mix(in oklab, var(--fg), transparent 90%);
+	--tint-or-shade-hard-overlay: color-mix(in oklab, var(--bg), transparent 20%);
 	color-scheme: light dark;
 }
 

@@ -1,8 +1,9 @@
 <script lang="ts">
-	import { app_data } from '$state/Project.svelte.js';
-	import marked from '$lib/utils/markdown';
+	import Dropzone from 'svelte-file-dropzone';
 	import { ink, defineOptions } from 'ink-mde';
 	import { onMount } from 'svelte';
+	import { app_data } from '$state/Project.svelte.js';
+	import marked from '$lib/utils/markdown';
 	let { data } = $props();
 
 	let editor: HTMLDivElement | null = null;
@@ -54,6 +55,11 @@
 		const text = textNodes.join('\n');
 		copyToClipboard(text);
 	};
+
+	function handleFilesSelect(e) {
+		const { acceptedFiles, fileRejections } = e.detail;
+		console.log('acceptedFiles', acceptedFiles);
+	}
 </script>
 
 <div class="container">
@@ -72,6 +78,8 @@
 	</div>
 	<div class="editor" bind:this={editor}></div>
 </div>
+
+<Dropzone ondrop={handleFilesSelect} />
 
 <style>
 	h1:focus {

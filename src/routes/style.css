@@ -23,6 +23,7 @@
 	--fg: light-dark(#161718, #fff);
 	--bg: light-dark(#fff, #161718);
 
+	--black: #161718;
 	--yellow: #fabf47;
 
 	--tint-or-shade: color-mix(in oklab, var(--fg), transparent 90%);
@@ -271,4 +272,27 @@ button,
 .button {
 	transition: 0.2s ease all;
 	cursor: pointer;
+	background: var(--yellow);
+	color: var(--black);
+	border: solid 1px var(--black);
+	border-radius: 4px;
+	padding-inline: 15px;
+	font-size: var(--fs-xs);
+}
+
+.ghost {
+	border: solid 1px var(--fg);
+	background: transparent;
+	color: var(--fg);
+	&:hover {
+		background: var(--tint-or-shade);
+	}
+}
+
+.hidden {
+	display: none;
+}
+
+.visible {
+	display: block;
 }

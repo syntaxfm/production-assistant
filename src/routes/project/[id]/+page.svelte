@@ -4,9 +4,10 @@
 	import { app_data } from '$state/Project.svelte.js';
 	import marked from '$lib/utils/markdown';
 	import { getCurrentWebview } from '@tauri-apps/api/webview';
-	import { fade } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 	import { invoke } from '@tauri-apps/api/core';
 	import type { FfprobeResult } from '$/lib/types/ffprobe';
+	import { get_filename_from_path } from '$/lib/utils/text.js';
 
 	let { data } = $props();
 	let editor: HTMLDivElement | null = $state(null);
@@ -74,12 +75,17 @@
 		}
 	};
 
+	// ON DROP
 	const unlisten = getCurrentWebview().onDragDropEvent((event) => {
 		if (event.payload.type === 'over') {
 			file_drop = 'HOVERING';
 		} else if (event.payload.type === 'drop') {
 			file_drop = 'DROPPED';
 			process_video(event.payload.paths[0]);
+			const name = get_filename_from_path(event.payload.paths[0]);
+			app_data.save({ id: data.id, name });
+
+			console.log('event.payload.paths[0]', event.payload.paths[0]);
 		} else {
 			file_drop = 'INITIAL';
 		}
@@ -126,10 +132,16 @@
 		{app_data.project?.name || 'Loading...'}
 	</h1>
 
+	{#if !editor_visible}
+		<div class="intro" transition:slide>
+			<p>Drop .mp4 anywhere to get started</p>
+		</div>
+	{/if}
+
 	<div class:hidden={!editor_visible} class:visible={editor_visible}>
-		<button onclick={copyHtml}>Copy as HTML</button>
-		<button onclick={copyText}>Copy as Text</button>
-		<button onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
+		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
+		<button class="ghost" onclick={copyText}>Copy as Text</button>
+		<button class="ghost" onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
 	</div>
 	<div
 		class:hidden={!editor_visible}
@@ -140,17 +152,25 @@
 </div>
 
 <style>
-	h1:focus {
-		outline: none;
-		border-bottom: solid 1px var(--yellow);
+	h1 {
+		margin-bottom: 4rem;
+		&:focus {
+			outline: none;
+			border-bottom: solid 1px var(--yellow);
+		}
 	}
 
-	.hidden {
-		display: none;
-	}
-
-	.visible {
-		display: block;
+	.intro {
+		border: solid 1px var(--tint-or-shade);
+		padding: 1rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		border-radius: 4px;
+		p {
+			text-align: center;
+		}
 	}
 
 	.container {

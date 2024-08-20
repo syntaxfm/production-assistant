@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@tauri-apps/api':
-        specifier: '>=2.0.0-rc.0'
+        specifier: 2.0.0-rc.2
         version: 2.0.0-rc.2
       '@tauri-apps/plugin-shell':
         specifier: '>=2.0.0-rc.0'

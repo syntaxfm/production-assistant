@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation';
-import { localDB } from '../db/local_db';
-import { generate_id } from '../utils/date';
+import { localDB } from '$lib/db/local_db';
+import { generate_id } from '$lib/utils/date';
 
 export interface Project {
 	id: string;
@@ -19,9 +19,12 @@ function createData() {
 		projects = await localDB.projects.toArray();
 	}
 
-	async function save(project: { id: string } & Partial<Project>) {
-		const curret = (await localDB.projects.get(project.id)) as Project;
-		const updated_project = { ...curret, ...project, updatedAt: new Date().toISOString() };
+	async function save(project_updates: { id: string } & Partial<Project>, update_state = false) {
+		const current = (await localDB.projects.get(project_updates.id)) as Project;
+		const updated_project = { ...current, ...project_updates, updatedAt: new Date().toISOString() };
+		if (update_state) {
+			project = updated_project;
+		}
 		await localDB.projects.put(updated_project);
 		await sync();
 	}

@@ -9,6 +9,8 @@
 	import type { FfprobeResult } from '$/lib/types/ffprobe';
 
 	let { data } = $props();
+	let loading = $state(false);
+	let error_message = $state('');
 	let editor: HTMLDivElement | null = $state(null);
 	let ink_instance: AwaitableInstance | null = null;
 	let notes = app_data?.project?.notes || '';
@@ -50,28 +52,37 @@
 	};
 
 	const process_video = async (path: string) => {
-		// TODO: show loading indicator
+		error_message = '';
+		loading = true;
 		const [result, error] = (await invoke('process_video', {
 			path
 		})) as string[];
+		let ffprobe_result: FfprobeResult = {};
+		try {
+			ffprobe_result = JSON.parse(result) as FfprobeResult;
+		} catch {}
 		if (error) {
-			// TODO: show error in UI
-			console.error(error);
+			error_message = error;
+		} else if (!ffprobe_result.chapters || ffprobe_result.chapters.length === 0) {
+			error_message =
+				'No chapters found in video. Make sure the video was exported with chapter metadata.';
 		} else {
-			const ffprobe_result = JSON.parse(result) as FfprobeResult;
 			const timestamps = ffprobe_result.chapters
 				.map((chapter) => {
 					const timestamp = convert_seconds(chapter.start / 1000);
 					return `* **[${timestamp}](#t=${timestamp})** ${chapter.tags.title}`;
 				})
 				.join('\n');
-			// TODO: save timestamps as full chapters in JSON format
-			// TODO: if notes already exist, only update timestamp section of notes | use marker like <!-- timestamp start -->
-			await app_data.save({ id: data.id, notes: timestamps, time_stamps: timestamps }, true);
+			// TODO: if notes already exist, only update timestamp section of notes | use marker like
+			await app_data.save(
+				{ id: data.id, notes: timestamps, chapters: ffprobe_result.chapters },
+				true
+			);
 			if (ink_instance) {
 				ink_instance.update(timestamps);
 			}
 		}
+		loading = false;
 	};
 
 	const unlisten = getCurrentWebview().onDragDropEvent((event) => {
@@ -111,8 +122,10 @@
 	};
 </script>
 
-{#if file_drop === 'HOVERING'}
-	<div class="dz" transition:fade>Drop File Here</div>
+{#if loading}
+	<div class="overlay" transition:fade>Loading...</div>
+{:else if file_drop === 'HOVERING'}
+	<div class="overlay" transition:fade>Drop File Here</div>
 {/if}
 
 <div class="container">
@@ -125,6 +138,10 @@
 	>
 		{app_data.project?.name || 'Loading...'}
 	</h1>
+
+	{#if error_message}
+		<div class="error">{error_message}</div>
+	{/if}
 
 	<div class:hidden={!editor_visible} class:visible={editor_visible}>
 		<button onclick={copyHtml}>Copy as HTML</button>
@@ -160,6 +177,17 @@
 		gap: 1rem;
 	}
 
+	.error {
+		border-radius: 4px;
+		border: solid 1px var(--fg);
+		background-color: transparent;
+		display: flex;
+		flex-direction: column;
+		padding: 20px;
+		color: var(--red);
+		font-size: var(--fs-xxs);
+	}
+
 	.editor {
 		flex-grow: 1;
 		overflow: hidden;
@@ -182,7 +210,7 @@
 		}
 	}
 
-	.dz {
+	.overlay {
 		background: var(--tint-or-shade-hard-overlay);
 		position: fixed;
 		inset: 0;

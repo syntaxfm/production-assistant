@@ -1,32 +1,49 @@
 import { goto } from '$app/navigation';
 import { localDB } from '$lib/db/local_db';
 import { generate_id } from '$lib/utils/date';
+import type { Chapter } from '$lib/types/ffprobe';
 
 export interface Project {
 	id: string;
 	notes?: string;
 	name: string;
 	createdAt: string;
-	time_stamps?: string;
+	chapters?: Chapter[];
 	updatedAt: string;
 }
 
-function createData() {
+export const deserializeProject = (project: Project) => {
+	if (typeof project.chapters === 'string') {
+		project.chapters = JSON.parse(project.chapters);
+	}
+	return project;
+};
+
+export const serializeProject = (project: Project) => {
+	if (typeof project.chapters !== 'string') {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-expect-error
+		project.chapters = JSON.stringify(project.chapters);
+	}
+	return project;
+};
+
+export function createData() {
 	let projects: Project[] = $state([]);
 	let project: Project | undefined = $state();
 
 	async function sync() {
-		projects = await localDB.projects.toArray();
+		projects = (await localDB.projects.toArray()).map(deserializeProject);
 	}
 
 	async function save(project_updates: { id: string } & Partial<Project>, update_state = false) {
 		const current = (await localDB.projects.get(project_updates.id)) as Project;
 		const updated_project = { ...current, ...project_updates, updatedAt: new Date().toISOString() };
-		if (update_state) {
-			project = updated_project;
-		}
-		await localDB.projects.put(updated_project);
+		await localDB.projects.put(serializeProject(updated_project));
 		await sync();
+		if (update_state) {
+			project = projects.find((item) => item.id === project_updates.id);
+		}
 	}
 
 	async function add() {
@@ -43,7 +60,10 @@ function createData() {
 	}
 
 	async function load(id: string) {
-		project = await localDB.projects.get(id);
+		const loaded = await localDB.projects.get(id);
+		if (loaded) {
+			project = deserializeProject(loaded);
+		}
 	}
 
 	async function export_to_json() {

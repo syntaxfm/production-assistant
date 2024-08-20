@@ -24,6 +24,7 @@
 	--bg: light-dark(#fff, #161718);
 
 	--yellow: #fabf47;
+	--red: #ff474e;
 
 	--tint-or-shade: color-mix(in oklab, var(--fg), transparent 90%);
 	--shade-or-tint: color-mix(in oklab, var(--bg), oklab(0% 0 0) 10%);

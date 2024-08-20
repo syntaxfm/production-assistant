@@ -46,7 +46,6 @@
 		}
 	});
 
-
 	const get_metadata = async (path: string) => {
 		error_message = '';
 		status = 'PROCESSING';
@@ -135,7 +134,6 @@
 		{app_data.project?.name || 'Loading...'}
 	</h1>
 
-
 	{#if !editor_visible}
 		<div class="intro box" transition:slide>
 			<p>Drop .mp4 anywhere to get started</p>
@@ -145,7 +143,6 @@
 	{#if error_message}
 		<div class="error">{error_message}</div>
 	{/if}
-
 
 	{#if status === 'COMPLETED'}
 		<div transition:slide class="meta box">
@@ -159,6 +156,7 @@
 		</div>
 	{/if}
 
+	<button onclick={() => invoke('create_mp3', { path: app_data.project?.path })}>Make MP3</button>
 
 	<div class:hidden={!editor_visible} class:visible={editor_visible}>
 		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
@@ -213,10 +211,20 @@
 	.editor {
 		flex-grow: 1;
 		overflow: hidden;
-
+		font-size: 16px;
+		box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+		background: var(--shade-or-tint);
+		--ink-syntax-heading1-font-size: var(--fs-l);
+		--ink-syntax-heading2-font-size: var(--fs-m);
+		--ink-syntax-heading3-font-size: var(--fs-s);
+		--ink-syntax-heading4-font-size: var(--fs-base);
 		:global(.ink),
 		:global(.cm-editor) {
 			height: 100%;
+			padding: 1rem 0.5rem 0.5rem;
+		}
+		:global(.ink-mde-editor) {
+			padding: 0;
 		}
 	}
 

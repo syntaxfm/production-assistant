@@ -1,5 +1,7 @@
-use ffmpeg_sidecar::ffprobe::ffprobe_path;
-use std::process::Command;
+use chrono::Local;
+use colored::*;
+use ffmpeg_sidecar::{command::FfmpegCommand, ffprobe::ffprobe_path};
+use std::{path::PathBuf, process::Command};
 use tauri::Manager;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -37,32 +39,45 @@ fn get_metadata(path: &str) -> [std::string::String; 2] {
     return [stdout, stderr];
 }
 #[tauri::command]
-fn create_mp3(path: &str) -> [std::string::String; 2] {
-    let ffprobe_path = ffprobe_path();
-    println!("Probing file {}", path);
-    println!("ffprobe path {}", ffprobe_path.display());
-    let output = Command::new(&ffprobe_path)
-        .args([
-            "-v",
-            "quiet",
-            "-print_format",
-            "json",
-            "-show_chapters",
-            "-show_format",
-            "-show_streams",
-            "-loglevel",
-            "error",
-            path,
-        ])
-        .output()
-        .expect("Error probing");
+fn create_mp3(path: &str) {
+    println!("Creating MP3 {}", path);
+    let input_path = PathBuf::from(path);
+    let parent_dir = input_path
+        .parent()
+        .unwrap_or_else(|| std::path::Path::new("."));
 
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-    println!("stdout: {}", stdout);
-    println!("stderr: {}", stderr);
-    // TODO: convert to mp3
-    return [stdout, stderr];
+    let timestamp = Local::now().format("%Y%m%d_%H%M%S").to_string();
+    let stream_id = input_path
+        .file_stem()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
+    let output_file = parent_dir.join(format!("{}_{}.mp3", stream_id, timestamp));
+    println!("Starting to write {}", output_file.to_str().unwrap());
+
+    let mut command = FfmpegCommand::new();
+    command
+        .input(path)
+        .output(output_file.to_str().unwrap())
+        .args(&["-vn"])
+        .args(&["-acodec", "libmp3lame"])
+        .args(&["-q:a", "2"])
+        .args(&["-map_metadata", "0"])
+        .args(&["-id3v2_version", "3"])
+        .spawn()
+        .unwrap()
+        .wait()
+        .unwrap();
+
+    if output_file.exists() {
+        println!(
+            "Video created successfully: {}",
+            output_file.to_str().unwrap().green()
+        );
+    } else {
+        eprintln!("Error creating video for stream_id: {}", stream_id.red());
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

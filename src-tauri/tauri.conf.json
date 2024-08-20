@@ -1,34 +1,36 @@
 {
-	"productName": "syntax-production-assistant",
-	"version": "0.1.0",
-	"identifier": "com.syntax-production-assistant.app",
-	"build": {
-		"beforeDevCommand": "pnpm dev",
-		"devUrl": "http://localhost:1420",
-		"beforeBuildCommand": "pnpm build",
-		"frontendDist": "../build"
-	},
-	"app": {
-		"windows": [
-			{
-				"title": "syntax-production-assistant",
-				"width": 800,
-				"height": 600
-			}
-		],
-		"security": {
-			"csp": null
-		}
-	},
-	"bundle": {
-		"active": true,
-		"targets": "all",
-		"icon": [
-			"icons/32x32.png",
-			"icons/128x128.png",
-			"icons/128x128@2x.png",
-			"icons/icon.icns",
-			"icons/icon.ico"
-		]
-	}
+    "app": {
+        "security": {
+            "csp": null
+        },
+        "windows": [
+            {
+                "height": 600,
+                "hiddenTitle": true,
+                "title": "Syntax Production Assistant",
+                "titleBarStyle": "Transparent",
+                "width": 800
+            }
+        ]
+    },
+    "build": {
+        "beforeBuildCommand": "pnpm build",
+        "beforeDevCommand": "pnpm dev",
+        "devUrl": "http://localhost:1420",
+        "frontendDist": "../build"
+    },
+    "bundle": {
+        "active": true,
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "targets": "all"
+    },
+    "identifier": "com.syntax-production-assistant.app",
+    "productName": "syntax-production-assistant",
+    "version": "0.1.0"
 }

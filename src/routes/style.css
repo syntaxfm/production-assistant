@@ -20,12 +20,13 @@
 
 	--line-height: calc(2px + 2ex + 2px);
 
-	--fg: light-dark(#000, #fff);
-	--bg: light-dark(#fff, #000);
+	--fg: light-dark(#161718, #fff);
+	--bg: light-dark(#fff, #161718);
 
 	--yellow: #fabf47;
 
 	--tint-or-shade: color-mix(in oklab, var(--fg), transparent 90%);
+	--shade-or-tint: color-mix(in oklab, var(--bg), oklab(0% 0 0) 10%);
 	--tint-or-shade-hard-overlay: color-mix(in oklab, var(--bg), transparent 20%);
 	color-scheme: light dark;
 }
@@ -43,6 +44,8 @@ body > div {
 
 body {
 	font-size: var(--fs-base);
+	background: var(--bg);
+	color: var(--fg);
 }
 
 body > div {

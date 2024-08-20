@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { iso_to_plain_date } from '$/lib/utils/date';
 	import { app_data } from '$state/Project.svelte';
-	import { invoke } from '@tauri-apps/api/core';
-
 	app_data.sync();
 </script>
 
@@ -24,7 +22,7 @@
 	</div>
 	<div class="grid">
 		<button onclick={app_data.add}>+ New Project</button>
-		{#each app_data.projects.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) as project}
+		{#each app_data.projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) as project}
 			<a class="button" href="/project/{project.id}">
 				<h2>
 					{project.name}

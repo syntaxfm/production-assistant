@@ -163,10 +163,22 @@
 	.editor {
 		flex-grow: 1;
 		overflow: hidden;
+		font-size: 16px;
+		box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+		background: var(--shade-or-tint);
+		--ink-syntax-heading1-font-size: var(--fs-l);
+		--ink-syntax-heading2-font-size: var(--fs-m);
+		--ink-syntax-heading3-font-size: var(--fs-s);
+		--ink-syntax-heading4-font-size: var(--fs-base);
 
 		:global(.ink),
 		:global(.cm-editor) {
 			height: 100%;
+
+			padding: 1rem 0.5rem 0.5rem;
+		}
+		:global(.ink-mde-editor) {
+			padding: 0;
 		}
 	}
 

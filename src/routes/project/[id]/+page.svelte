@@ -29,7 +29,7 @@
 		hooks: {
 			afterUpdate(doc) {
 				notes = doc;
-				app_data.save({ id: data.id, notes });
+				app_data.save({ id: data.id, notes }, true);
 			}
 		}
 	});
@@ -45,6 +45,7 @@
 			status = 'COMPLETED';
 		}
 	});
+
 
 	const get_metadata = async (path: string) => {
 		error_message = '';
@@ -62,19 +63,16 @@
 			error_message =
 				'No chapters found in video. Make sure the video was exported with chapter metadata.';
 		} else {
-			const timestamps = ffprobe_result.chapters
+			const notes = ffprobe_result.chapters
 				.map((chapter) => {
 					const timestamp = convert_seconds(chapter.start / 1000);
 					return `* **[${timestamp}](#t=${timestamp})** ${chapter.tags.title}`;
 				})
 				.join('\n');
-			// TODO: if notes already exist, only update timestamp section of notes | use marker like
-			await app_data.save(
-				{ id: data.id, notes: timestamps, chapters: ffprobe_result.chapters },
-				true
-			);
+
+			await app_data.save({ id: data.id, notes, chapters: ffprobe_result.chapters }, true);
 			if (ink_instance) {
-				ink_instance.update(timestamps);
+				ink_instance.update(notes);
 			}
 		}
 		status = 'COMPLETED';
@@ -137,6 +135,7 @@
 		{app_data.project?.name || 'Loading...'}
 	</h1>
 
+
 	{#if !editor_visible}
 		<div class="intro box" transition:slide>
 			<p>Drop .mp4 anywhere to get started</p>
@@ -146,6 +145,7 @@
 	{#if error_message}
 		<div class="error">{error_message}</div>
 	{/if}
+
 
 	{#if status === 'COMPLETED'}
 		<div transition:slide class="meta box">
@@ -158,6 +158,7 @@
 			</ul>
 		</div>
 	{/if}
+
 
 	<div class:hidden={!editor_visible} class:visible={editor_visible}>
 		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
@@ -212,22 +213,10 @@
 	.editor {
 		flex-grow: 1;
 		overflow: hidden;
-		font-size: 16px;
-		box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-		background: var(--shade-or-tint);
-		--ink-syntax-heading1-font-size: var(--fs-l);
-		--ink-syntax-heading2-font-size: var(--fs-m);
-		--ink-syntax-heading3-font-size: var(--fs-s);
-		--ink-syntax-heading4-font-size: var(--fs-base);
 
 		:global(.ink),
 		:global(.cm-editor) {
 			height: 100%;
-
-			padding: 1rem 0.5rem 0.5rem;
-		}
-		:global(.ink-mde-editor) {
-			padding: 0;
 		}
 	}
 

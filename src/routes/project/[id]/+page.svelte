@@ -30,7 +30,7 @@
 		hooks: {
 			afterUpdate(doc) {
 				notes = doc;
-				app_data.save({ id: data.id, notes });
+				app_data.save({ id: data.id, notes }, true);
 			}
 		}
 	});
@@ -67,19 +67,15 @@
 			error_message =
 				'No chapters found in video. Make sure the video was exported with chapter metadata.';
 		} else {
-			const timestamps = ffprobe_result.chapters
+			const notes = ffprobe_result.chapters
 				.map((chapter) => {
 					const timestamp = convert_seconds(chapter.start / 1000);
 					return `* **[${timestamp}](#t=${timestamp})** ${chapter.tags.title}`;
 				})
 				.join('\n');
-			// TODO: if notes already exist, only update timestamp section of notes | use marker like
-			await app_data.save(
-				{ id: data.id, notes: timestamps, chapters: ffprobe_result.chapters },
-				true
-			);
+			await app_data.save({ id: data.id, notes, chapters: ffprobe_result.chapters }, true);
 			if (ink_instance) {
-				ink_instance.update(timestamps);
+				ink_instance.update(notes);
 			}
 		}
 		loading = false;
@@ -191,22 +187,10 @@
 	.editor {
 		flex-grow: 1;
 		overflow: hidden;
-		font-size: 16px;
-		box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
-		background: var(--shade-or-tint);
-		--ink-syntax-heading1-font-size: var(--fs-l);
-		--ink-syntax-heading2-font-size: var(--fs-m);
-		--ink-syntax-heading3-font-size: var(--fs-s);
-		--ink-syntax-heading4-font-size: var(--fs-base);
 
 		:global(.ink),
 		:global(.cm-editor) {
 			height: 100%;
-
-			padding: 1rem 0.5rem 0.5rem;
-		}
-		:global(.ink-mde-editor) {
-			padding: 0;
 		}
 	}
 

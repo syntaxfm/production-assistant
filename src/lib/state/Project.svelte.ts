@@ -5,7 +5,10 @@ import { generate_id } from '../utils/date';
 export interface Project {
 	id: string;
 	notes?: string;
-	name?: string;
+	name: string;
+	createdAt: string;
+	time_stamps?: string;
+	updatedAt: string;
 }
 
 function createData() {
@@ -16,8 +19,8 @@ function createData() {
 		projects = await localDB.projects.toArray();
 	}
 
-	async function save(project: Project) {
-		const curret = await localDB.projects.get(project.id);
+	async function save(project: { id: string } & Partial<Project>) {
+		const curret = (await localDB.projects.get(project.id)) as Project;
 		const updated_project = { ...curret, ...project, updatedAt: new Date().toISOString() };
 		await localDB.projects.put(updated_project);
 		await sync();
@@ -70,9 +73,12 @@ function createData() {
 		}
 	}
 
-	async function import_from_json(event) {
+	async function import_from_json(event: Event) {
 		try {
-			const file = event.target.files[0];
+			if (!(event.target instanceof HTMLInputElement)) {
+				throw new Error('Event target is not an input element');
+			}
+			const file = event?.target?.files?.[0];
 			if (!file) {
 				throw new Error('No file selected');
 			}
@@ -80,19 +86,26 @@ function createData() {
 			const reader = new FileReader();
 			reader.onload = async (e) => {
 				try {
-					const jsonData = JSON.parse(e.target.result);
+					const text = e.target?.result;
+					if (typeof text !== 'string') {
+						throw new Error('FileReader did not return a string');
+					}
 
-					// Start a transaction
-					await localDB.transaction('rw', localDB.projects, async () => {
-						// Clear existing data (optional, remove if you want to keep existing data)
-						await localDB.projects.clear();
+					if (text) {
+						const jsonData = JSON.parse(text);
 
-						// Add all projects from the JSON file
-						await localDB.projects.bulkAdd(jsonData);
-						await sync();
-					});
+						// Start a transaction
+						await localDB.transaction('rw', localDB.projects, async () => {
+							// Clear existing data (optional, remove if you want to keep existing data)
+							await localDB.projects.clear();
 
-					alert('Data imported successfully!');
+							// Add all projects from the JSON file
+							await localDB.projects.bulkAdd(jsonData);
+							await sync();
+						});
+
+						alert('Data imported successfully!');
+					}
 				} catch (error) {
 					console.error('Error parsing or importing JSON:', error);
 					alert('Error importing data. Please check the file format and try again.');

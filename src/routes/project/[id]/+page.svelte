@@ -9,16 +9,16 @@
 
 	let { data } = $props();
 	let editor: HTMLDivElement | null = $state(null);
-	let notes = app_data.project.notes || '';
+	let notes = app_data?.project?.notes || '';
 	let file_drop: 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED' =
 		$state('INITIAL');
 
 	const unlisten = getCurrentWebview().onDragDropEvent((event) => {
 		if (event.payload.type === 'over') {
 			file_drop = 'HOVERING';
-			invoke('process_video', { path: event.payload.paths[0] });
 		} else if (event.payload.type === 'drop') {
 			file_drop = 'DROPPED';
+			invoke('process_video', { path: event.payload.paths[0] });
 		} else {
 			file_drop = 'INITIAL';
 		}
@@ -76,25 +76,28 @@
 	<div class="dz" transition:fade>Drop File Here</div>
 {/if}
 
-<div class="container">
-	<h1
-		oninput={(e) => {
-			app_data.save({ id: data.id, name: e.target.textContent });
-		}}
-		contenteditable
-	>
-		{app_data.project.name}
-	</h1>
+{#if app_data?.project}
+	<div class="container">
+		<h1
+			oninput={(e) => {
+				const target = e.target as HTMLElement;
+				app_data.save({ id: data.id, name: target?.textContent ?? '' });
+			}}
+			contenteditable
+		>
+			{app_data.project.name}
+		</h1>
 
-	{#if app_data.project.time_stamps}
-		<div>
-			<button onclick={copyHtml}>Copy as HTML</button>
-			<button onclick={copyText}>Copy as Text</button>
-			<button onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
-		</div>
-		<div class="editor" bind:this={editor}></div>
-	{/if}
-</div>
+		{#if app_data.project.time_stamps}
+			<div>
+				<button onclick={copyHtml}>Copy as HTML</button>
+				<button onclick={copyText}>Copy as Text</button>
+				<button onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
+			</div>
+			<div class="editor" bind:this={editor}></div>
+		{/if}
+	</div>
+{/if}
 
 <style>
 	h1:focus {

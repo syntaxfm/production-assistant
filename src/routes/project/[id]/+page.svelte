@@ -1,22 +1,20 @@
 <script lang="ts">
 	import { ink, defineOptions, type AwaitableInstance } from 'ink-mde';
-	import { onMount } from 'svelte';
 	import { app_data } from '$state/Project.svelte.js';
 	import marked from '$lib/utils/markdown';
 	import { getCurrentWebview } from '@tauri-apps/api/webview';
 	import { fade, slide } from 'svelte/transition';
 	import { invoke } from '@tauri-apps/api/core';
 	import type { FfprobeResult } from '$/lib/types/ffprobe';
-	import { get_filename_from_path } from '$/lib/utils/text.js';
+	import { convert_seconds, format_number, get_filename_from_path } from '$/lib/utils/text.js';
+	import { iso_to_plain_date } from '$/lib/utils/date';
 
 	let { data } = $props();
-	let loading = $state(false);
 	let error_message = $state('');
 	let editor: HTMLDivElement | null = $state(null);
 	let ink_instance: AwaitableInstance | null = null;
 	let notes = app_data?.project?.notes || '';
-	let file_drop: 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED' =
-		$state('INITIAL');
+	let status: 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED' = $state('INITIAL');
 	let editor_visible = $derived(!!app_data.project?.notes);
 
 	// Syntax highlighting can be customized with CSS variables
@@ -36,26 +34,22 @@
 		}
 	});
 
-	onMount(() => {
+	$effect(() => {
 		if (editor) {
 			ink_instance = ink(editor, options);
 		}
 	});
 
-	const format_number = (value: number) => value.toString().padStart(2, '0');
+	$effect(() => {
+		if (app_data.project?.path && status !== 'PROCESSING') {
+			status = 'COMPLETED';
+		}
+	});
 
-	const convert_seconds = (total_seconds: number) => {
-		const minutes = format_number(Math.floor(total_seconds / 60));
-		const seconds = format_number(Math.floor(total_seconds % 60));
-		// TODO: calculate hours
-		let result = `${minutes}:${seconds}`;
-		return result;
-	};
-
-	const process_video = async (path: string) => {
+	const get_metadata = async (path: string) => {
 		error_message = '';
-		loading = true;
-		const [result, error] = (await invoke('process_video', {
+		status = 'PROCESSING';
+		const [result, error] = (await invoke('get_metadata', {
 			path
 		})) as string[];
 		let ffprobe_result: FfprobeResult = {};
@@ -83,22 +77,20 @@
 				ink_instance.update(timestamps);
 			}
 		}
-		loading = false;
+		status = 'COMPLETED';
 	};
 
 	// ON DROP
 	const unlisten = getCurrentWebview().onDragDropEvent((event) => {
 		if (event.payload.type === 'over') {
-			file_drop = 'HOVERING';
+			status = 'HOVERING';
 		} else if (event.payload.type === 'drop') {
-			file_drop = 'DROPPED';
-			process_video(event.payload.paths[0]);
+			status = 'DROPPED';
+			get_metadata(event.payload.paths[0]);
 			const name = get_filename_from_path(event.payload.paths[0]);
-			app_data.save({ id: data.id, name });
-
-			console.log('event.payload.paths[0]', event.payload.paths[0]);
+			app_data.save({ id: data.id, name, path: event.payload.paths[0] });
 		} else {
-			file_drop = 'INITIAL';
+			status = 'INITIAL';
 		}
 	});
 
@@ -128,9 +120,9 @@
 	};
 </script>
 
-{#if loading}
+{#if status === 'PROCESSING'}
 	<div class="overlay" transition:fade>Loading...</div>
-{:else if file_drop === 'HOVERING'}
+{:else if status === 'HOVERING'}
 	<div class="overlay" transition:fade>Drop File Here</div>
 {/if}
 
@@ -146,13 +138,25 @@
 	</h1>
 
 	{#if !editor_visible}
-		<div class="intro" transition:slide>
+		<div class="intro box" transition:slide>
 			<p>Drop .mp4 anywhere to get started</p>
 		</div>
 	{/if}
 
 	{#if error_message}
 		<div class="error">{error_message}</div>
+	{/if}
+
+	{#if status === 'COMPLETED'}
+		<div transition:slide class="meta box">
+			<h2>Metadata</h2>
+			<ul class="no-list">
+				<li>Path: {app_data.project?.path}</li>
+				<li>Created At: {iso_to_plain_date(app_data.project?.createdAt)}</li>
+				<li>Updated At: {iso_to_plain_date(app_data.project?.updatedAt)}</li>
+				<li>Youtube Upload: <button class="small">Upload</button></li>
+			</ul>
+		</div>
 	{/if}
 
 	<div class:hidden={!editor_visible} class:visible={editor_visible}>
@@ -178,13 +182,10 @@
 	}
 
 	.intro {
-		border: solid 1px var(--tint-or-shade);
-		padding: 1rem;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		height: 100%;
-		border-radius: 4px;
 		p {
 			text-align: center;
 		}
@@ -238,5 +239,10 @@
 		justify-content: center;
 		align-items: center;
 		font-size: var(--fs-xl);
+	}
+
+	.no-list li {
+		font-size: var(--fs-xxs);
+		margin-bottom: 0.5rem;
 	}
 </style>

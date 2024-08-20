@@ -9,7 +9,35 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn process_video(path: &str) -> [std::string::String; 2] {
+fn get_metadata(path: &str) -> [std::string::String; 2] {
+    let ffprobe_path = ffprobe_path();
+    println!("Probing file {}", path);
+    println!("ffprobe path {}", ffprobe_path.display());
+    let output = Command::new(&ffprobe_path)
+        .args([
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_chapters",
+            "-show_format",
+            "-show_streams",
+            "-loglevel",
+            "error",
+            path,
+        ])
+        .output()
+        .expect("Error probing");
+
+    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+    println!("stdout: {}", stdout);
+    println!("stderr: {}", stderr);
+    // TODO: convert to mp3
+    return [stdout, stderr];
+}
+#[tauri::command]
+fn create_mp3(path: &str) -> [std::string::String; 2] {
     let ffprobe_path = ffprobe_path();
     println!("Probing file {}", path);
     println!("ffprobe path {}", ffprobe_path.display());
@@ -59,7 +87,7 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, process_video])
+        .invoke_handler(tauri::generate_handler![greet, get_metadata, create_mp3])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

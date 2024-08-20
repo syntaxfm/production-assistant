@@ -1,7 +1,7 @@
 export type FfprobeResult = {
-	streams: Stream[];
-	chapters: Chapter[];
-	format: Format;
+	streams?: Stream[];
+	chapters?: Chapter[];
+	format?: Format;
 };
 
 export type Chapter = {

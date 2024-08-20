@@ -8,7 +8,7 @@
 	<div class="settings flex">
 		<h1>My Projects</h1>
 		<div class="flex">
-			<label
+			<label class="button small"
 				>Import Data
 				<input
 					class="visually-hidden"
@@ -17,13 +17,13 @@
 					oninput={app_data.import_from_json}
 				/></label
 			>
-			<button onclick={app_data.export_to_json}>Export Data</button>
+			<button class="small" onclick={app_data.export_to_json}>Export Data</button>
 		</div>
 	</div>
 	<div class="grid">
-		<button onclick={app_data.add}>+ New Project</button>
+		<button class="project-button" onclick={app_data.add}>+ New Project</button>
 		{#each app_data.projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) as project}
-			<a class="button" href="/project/{project.id}">
+			<a class="project-button" href="/project/{project.id}">
 				<h2>
 					{project.name}
 				</h2>
@@ -36,9 +36,7 @@
 </div>
 
 <style>
-	button,
-	label,
-	.button {
+	.project-button {
 		aspect-ratio: 16/9;
 		border-radius: 4px;
 		border: solid 1px var(--fg);
@@ -56,12 +54,13 @@
 		p {
 			margin: 0;
 			font-size: var(--fs-xxs);
+			opacity: 0.7;
 		}
 		&:hover {
 			background: var(--tint-or-shade);
 		}
 	}
-	button {
+	button.project-button {
 		justify-content: center;
 		align-items: center;
 	}

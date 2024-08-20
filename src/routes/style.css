@@ -23,6 +23,7 @@
 	--fg: light-dark(#161718, #fff);
 	--bg: light-dark(#fff, #161718);
 
+	--black: #161718;
 	--yellow: #fabf47;
 	--red: #ff474e;
 
@@ -272,4 +273,46 @@ button,
 .button {
 	transition: 0.2s ease all;
 	cursor: pointer;
+	background: var(--yellow);
+	color: var(--black);
+	border: solid 1px var(--black);
+	border-radius: 4px;
+	padding-inline: 15px;
+	font-size: var(--fs-xs);
+	box-shadow: 1px 1px 4px rgb(0 0 0 / 0.4);
+}
+
+.ghost {
+	border: solid 1px var(--fg);
+	background: transparent;
+	color: var(--fg);
+	&:hover {
+		background: var(--tint-or-shade);
+	}
+}
+
+.small {
+	font-size: var(--fs-xxs);
+	padding: 2px 15px;
+}
+
+.hidden {
+	display: none;
+}
+
+.visible {
+	display: block;
+}
+
+h1 {
+	margin-bottom: 4rem;
+}
+
+.box {
+	border: solid 1px var(--tint-or-shade);
+	padding: 1rem;
+	border-radius: 4px;
+	*:first-child {
+		margin-top: 0;
+	}
 }

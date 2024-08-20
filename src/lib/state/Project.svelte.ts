@@ -10,6 +10,7 @@ export interface Project {
 	createdAt: string;
 	chapters?: Chapter[];
 	updatedAt: string;
+	path?: string;
 }
 
 export const deserializeProject = (project: Project) => {

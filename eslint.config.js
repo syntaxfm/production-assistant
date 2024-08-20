@@ -32,7 +32,8 @@ export default [
 	},
 	{
 		rules: {
-			'prefer-template': 'error'
+			'prefer-template': 'error',
+			'no-shadow': 'error'
 		}
 	}
 ];

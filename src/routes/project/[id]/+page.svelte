@@ -1,28 +1,20 @@
 <script lang="ts">
-	import { ink, defineOptions } from 'ink-mde';
+	import { ink, defineOptions, type AwaitableInstance } from 'ink-mde';
 	import { onMount } from 'svelte';
 	import { app_data } from '$state/Project.svelte.js';
 	import marked from '$lib/utils/markdown';
 	import { getCurrentWebview } from '@tauri-apps/api/webview';
 	import { fade } from 'svelte/transition';
 	import { invoke } from '@tauri-apps/api/core';
+	import type { FfprobeResult } from '$/lib/types/ffprobe';
 
 	let { data } = $props();
 	let editor: HTMLDivElement | null = $state(null);
+	let ink_instance: AwaitableInstance | null = null;
 	let notes = app_data?.project?.notes || '';
 	let file_drop: 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED' =
 		$state('INITIAL');
-
-	const unlisten = getCurrentWebview().onDragDropEvent((event) => {
-		if (event.payload.type === 'over') {
-			file_drop = 'HOVERING';
-		} else if (event.payload.type === 'drop') {
-			file_drop = 'DROPPED';
-			invoke('process_video', { path: event.payload.paths[0] });
-		} else {
-			file_drop = 'INITIAL';
-		}
-	});
+	let editor_visible = $derived(!!app_data.project?.notes);
 
 	// Syntax highlighting can be customized with CSS variables
 	// https://github.com/davidmyersdev/ink-mde/tree/main?tab=readme-ov-file#syntax-highlighting
@@ -40,9 +32,56 @@
 			}
 		}
 	});
+
 	onMount(() => {
 		if (editor) {
-			ink(editor, options);
+			ink_instance = ink(editor, options);
+		}
+	});
+
+	const format_number = (value: number) => value.toString().padStart(2, '0');
+
+	const convert_seconds = (total_seconds: number) => {
+		const minutes = format_number(Math.floor(total_seconds / 60));
+		const seconds = format_number(Math.floor(total_seconds % 60));
+		// TODO: calculate hours
+		let result = `${minutes}:${seconds}`;
+		return result;
+	};
+
+	const process_video = async (path: string) => {
+		// TODO: show loading indicator
+		const [result, error] = (await invoke('process_video', {
+			path
+		})) as string[];
+		if (error) {
+			// TODO: show error in UI
+			console.error(error);
+		} else {
+			const ffprobe_result = JSON.parse(result) as FfprobeResult;
+			const timestamps = ffprobe_result.chapters
+				.map((chapter) => {
+					const timestamp = convert_seconds(chapter.start / 1000);
+					return `* **[${timestamp}](#t=${timestamp})** ${chapter.tags.title}`;
+				})
+				.join('\n');
+			// TODO: save timestamps as full chapters in JSON format
+			// TODO: if notes already exist, only update timestamp section of notes | use marker like <!-- timestamp start -->
+			await app_data.save({ id: data.id, notes: timestamps, time_stamps: timestamps }, true);
+			if (ink_instance) {
+				ink_instance.update(timestamps);
+			}
+		}
+	};
+
+	const unlisten = getCurrentWebview().onDragDropEvent((event) => {
+		if (event.payload.type === 'over') {
+			file_drop = 'HOVERING';
+		} else if (event.payload.type === 'drop') {
+			file_drop = 'DROPPED';
+			process_video(event.payload.paths[0]);
+		} else {
+			file_drop = 'INITIAL';
 		}
 	});
 
@@ -76,33 +115,42 @@
 	<div class="dz" transition:fade>Drop File Here</div>
 {/if}
 
-{#if app_data?.project}
-	<div class="container">
-		<h1
-			oninput={(e) => {
-				const target = e.target as HTMLElement;
-				app_data.save({ id: data.id, name: target?.textContent ?? '' });
-			}}
-			contenteditable
-		>
-			{app_data.project.name}
-		</h1>
+<div class="container">
+	<h1
+		oninput={(e) => {
+			const target = e.target as HTMLElement;
+			app_data.save({ id: data.id, name: target?.textContent ?? '' });
+		}}
+		contenteditable
+	>
+		{app_data.project?.name || 'Loading...'}
+	</h1>
 
-		{#if app_data.project.time_stamps}
-			<div>
-				<button onclick={copyHtml}>Copy as HTML</button>
-				<button onclick={copyText}>Copy as Text</button>
-				<button onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
-			</div>
-			<div class="editor" bind:this={editor}></div>
-		{/if}
+	<div class:hidden={!editor_visible} class:visible={editor_visible}>
+		<button onclick={copyHtml}>Copy as HTML</button>
+		<button onclick={copyText}>Copy as Text</button>
+		<button onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
 	</div>
-{/if}
+	<div
+		class:hidden={!editor_visible}
+		class:visible={editor_visible}
+		class="editor"
+		bind:this={editor}
+	></div>
+</div>
 
 <style>
 	h1:focus {
 		outline: none;
 		border-bottom: solid 1px var(--yellow);
+	}
+
+	.hidden {
+		display: none;
+	}
+
+	.visible {
+		display: block;
 	}
 
 	.container {

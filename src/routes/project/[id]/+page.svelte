@@ -5,7 +5,6 @@
 	import { invoke } from '@tauri-apps/api/core';
 	import type { FfprobeResult } from '$/lib/types/ffprobe';
 	import { convert_seconds, get_filename_from_path } from '$/lib/utils/text';
-	import { iso_to_plain_date } from '$/lib/utils/date';
 	import { listen } from '@tauri-apps/api/event';
 
 	let { data } = $props();
@@ -85,7 +84,7 @@
 	}
 </script>
 
-{#if app_data.project}
+{#if app_data?.project}
 	{#if app_data.project.status === 'PROCESSING'}
 		<div class="overlay" transition:fade>Loading...</div>
 	{:else if app_data.project.status === 'HOVERING'}
@@ -104,36 +103,55 @@
 
 	{#if app_data.project.status === 'COMPLETED'}
 		<div class="meta box filled">
-			<ul class="no-list">
-				<li>
+			<div>
+				<div>Path:</div>
+				<div>
+					{app_data?.project?.path}
+				</div>
+				<div>
 					<button
 						onclick={() => app_data?.project?.path && open_in_finder(app_data.project.path)}
 						class="small ghost">Open In Finder</button
 					>
-					Path: {app_data.project.path}
-				</li>
-				<li>
+				</div>
+			</div>
+			<div>
+				<span>MP3 Path:</span>
+				<div>
+					{#if app_data.project.mp3_path}
+						{app_data.project.mp3_path}
+					{:else}
+						<progress id="mp3_upload" value={mp3_progress} max="100"></progress>
+					{/if}
+				</div>
+				<div>
 					{#if app_data.project.mp3_path}
 						<button
 							onclick={() =>
 								app_data?.project?.mp3_path && open_in_finder(app_data.project.mp3_path)}
 							class="small ghost">Open In Finder</button
 						>
-					{/if}
-
-					MP3 Path:
-					{#if app_data.project.mp3_path}
-						{app_data.project.mp3_path}
 					{:else}
-						<progress id="mp3_upload" value={mp3_progress} max="100"></progress>
-						<button class="small ghost">Re-Generate MP3</button>
+						<button onclick={() => make_mp3(app_data?.project?.path)} class="small ghost"
+							>Re-Generate MP3</button
+						>
 					{/if}
-				</li>
-				<li>Created At: {iso_to_plain_date(app_data.project?.createdAt)}</li>
-				<li>Updated At: {iso_to_plain_date(app_data.project?.updatedAt)}</li>
-				<li>
-					<a href="/project/{data.id}/publish" class="button ghost small">Start Upload</a>
-					Youtube Upload:
+				</div>
+			</div>
+
+			<div>
+				<span>Created At:</span>
+				<span>{app_data?.project?.createdAt}</span>
+			</div>
+
+			<div>
+				<span>Updated At:</span>
+				<span>{app_data.project?.updatedAt}</span>
+			</div>
+
+			<div>
+				<span>Youtube:</span>
+				<div>
 					{#if app_data.project?.youtube_url}
 						<a href={app_data.project?.youtube_url} target="_blank">
 							{app_data.project?.youtube_url}
@@ -141,8 +159,11 @@
 					{:else}
 						Not Uploaded
 					{/if}
-				</li>
-			</ul>
+				</div>
+				<div>
+					<a href="/project/{data.id}/publish" class="button ghost small">Start Upload</a>
+				</div>
+			</div>
 		</div>
 	{/if}
 {/if}
@@ -158,17 +179,6 @@
 		}
 	}
 
-	.error {
-		border-radius: 4px;
-		border: solid 1px var(--fg);
-		background-color: transparent;
-		display: flex;
-		flex-direction: column;
-		padding: 20px;
-		color: var(--red);
-		font-size: var(--fs-xxs);
-	}
-
 	.overlay {
 		background: var(--tint-or-shade-hard-overlay);
 		position: fixed;
@@ -179,8 +189,15 @@
 		font-size: var(--fs-xl);
 	}
 
-	.no-list li {
-		font-size: var(--fs-xxs);
-		margin-bottom: 0.5rem;
+	.meta {
+		display: grid;
+		grid-template-columns: auto 1fr 150px;
+		gap: 10px;
+		& > div {
+			display: grid;
+			align-items: start;
+			grid-column: 1 / -1;
+			grid-template-columns: subgrid;
+		}
 	}
 </style>

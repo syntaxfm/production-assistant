@@ -180,12 +180,11 @@ select {
 }
 
 .layout {
-	margin-inline: auto;
 	display: grid;
 	grid-template-rows: auto;
 	flex: 0;
 	max-width: var(--max-width);
-	grid-template-columns: [start] 2.5vw [content] 95% [content] 2.5vw [end];
+	grid-template-columns: [start] 1.5vw [content] 97% [content] 1.5vw [end];
 }
 
 .layout-sidebar {
@@ -279,12 +278,13 @@ button,
 	border-radius: 4px;
 	padding-inline: 15px;
 	font-size: var(--fs-xs);
+	text-decoration: none;
 	box-shadow: 1px 1px 4px rgb(0 0 0 / 0.4);
 }
 
 .ghost {
 	border: solid 1px var(--tint-or-shade);
-	background: transparent;
+	background: var(--bg);
 	color: var(--fg);
 	&:hover {
 		background: var(--tint-or-shade);
@@ -314,5 +314,12 @@ h1 {
 	border-radius: 4px;
 	*:first-child {
 		margin-top: 0;
+	}
+
+	&.filled {
+		padding: 1rem 0.5rem 0.5rem;
+		font-size: 16px;
+		box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+		background: var(--shade-or-tint);
 	}
 }

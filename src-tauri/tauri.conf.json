@@ -8,7 +8,7 @@
                 "height": 600,
                 "hiddenTitle": true,
                 "title": "Syntax Production Assistant",
-                "titleBarStyle": "Transparent",
+                "titleBarStyle": "Overlay",
                 "width": 800
             }
         ]

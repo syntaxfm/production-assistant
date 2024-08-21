@@ -8,6 +8,7 @@
 	import type { FfprobeResult } from '$/lib/types/ffprobe';
 	import { convert_seconds, format_number, get_filename_from_path } from '$/lib/utils/text';
 	import { iso_to_plain_date } from '$/lib/utils/date';
+	import { listen } from '@tauri-apps/api/event';
 	import { validate_urls, type UrlValidation } from '$/lib/utils/markdown/validate';
 
 	let { data } = $props();
@@ -16,6 +17,7 @@
 	let invalid_urls: UrlValidation[] = $state<UrlValidation[]>([]);
 	let validation_status = $state('');
 	let ink_instance: AwaitableInstance | null = null;
+	let mp3_progress = $state(0);
 	let notes = app_data?.project?.notes || '';
 	let status: 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED' = $state('INITIAL');
 	let editor_visible = $derived(!!app_data.project?.notes);
@@ -47,6 +49,16 @@
 		if (app_data.project?.path && status !== 'PROCESSING') {
 			status = 'COMPLETED';
 		}
+	});
+
+	$effect(() => {
+		listen('mp3_progress', (event) => {
+			console.log(typeof event, event.payload);
+			mp3_progress = event.payload as number;
+			// event = { payload: number }
+			// Update your UI with the progress
+			// For example, update a progress bar or text
+		});
 	});
 
 	const get_metadata = async (path: string) => {
@@ -169,6 +181,11 @@
 		</div>
 	{/if}
 
+	<button onclick={() => invoke('create_mp3', { path: app_data.project?.path })}>Make MP3</button>
+
+	<label for="mp3_upload"></label>
+	<progress id="mp3_upload" value={mp3_progress} max="100"></progress>
+
 	<div class:hidden={!editor_visible} class:visible={editor_visible}>
 		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
 		<button class="ghost" onclick={copyText}>Copy as Text</button>
@@ -238,10 +255,20 @@
 	.editor {
 		flex-grow: 1;
 		overflow: hidden;
-
+		font-size: 16px;
+		box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+		background: var(--shade-or-tint);
+		--ink-syntax-heading1-font-size: var(--fs-l);
+		--ink-syntax-heading2-font-size: var(--fs-m);
+		--ink-syntax-heading3-font-size: var(--fs-s);
+		--ink-syntax-heading4-font-size: var(--fs-base);
 		:global(.ink),
 		:global(.cm-editor) {
 			height: 100%;
+			padding: 1rem 0.5rem 0.5rem;
+		}
+		:global(.ink-mde-editor) {
+			padding: 0;
 		}
 	}
 

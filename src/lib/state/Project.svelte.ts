@@ -3,6 +3,7 @@ import { localDB } from '$lib/db/local_db';
 import { generate_id } from '$lib/utils/date';
 import type { Chapter } from '$lib/types/ffprobe';
 
+export type ProjectStatus = 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED';
 export interface Project {
 	id: string;
 	notes?: string;
@@ -11,6 +12,9 @@ export interface Project {
 	chapters?: Chapter[];
 	updatedAt: string;
 	path?: string;
+	mp3_path?: string;
+	youtube_url?: string;
+	status: ProjectStatus;
 }
 
 export const deserializeProject = (project: Project) => {
@@ -53,7 +57,8 @@ export function createData() {
 			notes: '',
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
-			name: 'New Project'
+			name: 'New Project',
+			status: 'INITIAL' as ProjectStatus
 		};
 		await localDB.projects.put(db_project);
 		await sync();
@@ -143,6 +148,13 @@ export function createData() {
 		}
 	}
 
+	async function set_project_status(id: string, status: ProjectStatus) {
+		if (project) {
+			project.status = status;
+			save({ id, status });
+		}
+	}
+
 	return {
 		get projects() {
 			return projects;
@@ -150,6 +162,7 @@ export function createData() {
 		get project() {
 			return project;
 		},
+		set_project_status,
 		sync,
 		save,
 		add,

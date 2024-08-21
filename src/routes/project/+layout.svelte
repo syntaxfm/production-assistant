@@ -3,8 +3,6 @@
 	let { children, data } = $props();
 </script>
 
-<a href="/">🔙</a>
-
 {#if data?.id}
 	{#await app_data.load(data.id)}
 		Loading...

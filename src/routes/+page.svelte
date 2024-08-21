@@ -7,7 +7,7 @@
 <div class="content">
 	<div class="settings flex">
 		<h1>My Projects</h1>
-		<div class="flex">
+		<div class="flex settings-buttons">
 			<label class="button small ghost"
 				>Import Data
 				<input
@@ -60,13 +60,21 @@
 			background: var(--tint-or-shade);
 		}
 	}
+
 	button.project-button {
 		justify-content: center;
 		align-items: center;
+	}
+	h1 {
+		margin-top: 6rem;
+		margin-bottom: 2rem;
 	}
 
 	.settings {
 		justify-content: space-between;
 		align-items: start;
+		.settings-buttons {
+			margin-top: 1rem;
+		}
 	}
 </style>

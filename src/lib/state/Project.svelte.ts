@@ -16,6 +16,7 @@ export interface Project {
 	youtube_url?: string;
 	status: ProjectStatus;
 	ai_titles?: string[];
+	pr_url?: string;
 }
 
 export const deserializeProject = (project: Project) => {

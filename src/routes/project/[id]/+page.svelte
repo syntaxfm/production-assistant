@@ -79,6 +79,10 @@
 		const name = get_filename_from_path(path);
 		app_data.save({ id: data.id, name, path }, true);
 	}
+
+	function open_in_finder(path: string) {
+		invoke('open_in_finder', { path });
+	}
 </script>
 
 {#if app_data.project}
@@ -101,10 +105,20 @@
 	{#if app_data.project.status === 'COMPLETED'}
 		<div class="meta box filled">
 			<ul class="no-list">
-				<li><button class="small ghost">Open In Finder</button> Path: {app_data.project.path}</li>
+				<li>
+					<button
+						onclick={() => app_data?.project?.path && open_in_finder(app_data.project.path)}
+						class="small ghost">Open In Finder</button
+					>
+					Path: {app_data.project.path}
+				</li>
 				<li>
 					{#if app_data.project.mp3_path}
-						<button class="small ghost">Open In Finder</button>
+						<button
+							onclick={() =>
+								app_data?.project?.mp3_path && open_in_finder(app_data.project.mp3_path)}
+							class="small ghost">Open In Finder</button
+						>
 					{/if}
 
 					MP3 Path:

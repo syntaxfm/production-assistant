@@ -166,6 +166,11 @@ fn create_mp3(path: &str, app_handle: tauri::AppHandle) -> Result<Mp3Result, Str
     }
 }
 
+#[tauri::command]
+fn open_in_finder(path: &str) {
+    Command::new("open").args(["-R", path]).spawn().unwrap();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -209,7 +214,12 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![greet, get_metadata, create_mp3])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            get_metadata,
+            create_mp3,
+            open_in_finder
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -3,7 +3,7 @@ use colored::*;
 use ffmpeg_sidecar::{command::FfmpegCommand, event::FfmpegEvent, ffprobe::ffprobe_path};
 use regex::Regex;
 use serde::Serialize;
-use std::{io::Write, path::PathBuf, process::Command, time::Duration};
+use std::{path::PathBuf, process::Command, time::Duration};
 use tauri::{Emitter, Manager};
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -38,18 +38,6 @@ fn get_metadata(path: &str) -> [std::string::String; 2] {
     println!("stdout: {}", stdout);
     println!("stderr: {}", stderr);
     return [stdout, stderr];
-}
-
-fn parse_time(time_str: &str) -> Option<Duration> {
-    let parts: Vec<&str> = time_str.split(':').collect();
-    if parts.len() != 3 {
-        return None;
-    }
-    let hours: u64 = parts[0].parse().ok()?;
-    let minutes: u64 = parts[1].parse().ok()?;
-    let seconds: f64 = parts[2].parse().ok()?;
-
-    Some(Duration::from_secs(hours * 3600 + minutes * 60) + Duration::from_secs_f64(seconds))
 }
 
 fn get_duration(path: &str) -> Result<Duration, String> {

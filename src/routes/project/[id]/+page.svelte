@@ -148,82 +148,62 @@
 	<div class="overlay" transition:fade>Drop File Here</div>
 {/if}
 
-<div class="container">
-	<h1
-		oninput={(e) => {
-			const target = e.target as HTMLElement;
-			app_data.save({ id: data.id, name: target?.textContent ?? '' });
-		}}
-		contenteditable
-	>
-		{app_data.project?.name || 'Loading...'}
-	</h1>
-
-	{#if !editor_visible}
-		<div class="intro box" transition:slide>
-			<p>Drop .mp4 anywhere to get started</p>
-		</div>
-	{/if}
-
-	{#if error_message}
-		<div class="error">{error_message}</div>
-	{/if}
-
-	{#if status === 'COMPLETED'}
-		<div transition:slide class="meta box">
-			<h2>Metadata</h2>
-			<ul class="no-list">
-				<li>Path: {app_data.project?.path}</li>
-				<li>Created At: {iso_to_plain_date(app_data.project?.createdAt)}</li>
-				<li>Updated At: {iso_to_plain_date(app_data.project?.updatedAt)}</li>
-				<li>Youtube Upload: <button class="small">Upload</button></li>
-			</ul>
-		</div>
-	{/if}
-
-	<button onclick={() => invoke('create_mp3', { path: app_data.project?.path })}>Make MP3</button>
-
-	<label for="mp3_upload"></label>
-	<progress id="mp3_upload" value={mp3_progress} max="100"></progress>
-
-	<div class:hidden={!editor_visible} class:visible={editor_visible}>
-		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
-		<button class="ghost" onclick={copyText}>Copy as Text</button>
-		<button class="ghost" onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
-		<button class="ghost" onclick={validateLinks} disabled={!!validation_status}
-			>Validate Links</button
-		>
+{#if !editor_visible}
+	<div class="intro box" transition:slide>
+		<p>Drop .mp4 anywhere to get started</p>
 	</div>
-	{#if validation_status}
-		<p>{validation_status}</p>
-	{/if}
-	{#if invalid_urls.length}
-		<div class="error">
-			<p>The following invalid urls were found:</p>
-			<ul>
-				{#each invalid_urls as validation_result}
-					<li>{validation_result.statusText} | {validation_result.url}</li>
-				{/each}
-			</ul>
-		</div>
-	{/if}
-	<div
-		class:hidden={!editor_visible}
-		class:visible={editor_visible}
-		class="editor"
-		bind:this={editor}
-	></div>
+{/if}
+
+{#if error_message}
+	<div class="error">{error_message}</div>
+{/if}
+
+{#if status === 'COMPLETED'}
+	<div transition:slide class="meta box">
+		<h2>Metadata</h2>
+		<ul class="no-list">
+			<li>Path: {app_data.project?.path}</li>
+			<li>Created At: {iso_to_plain_date(app_data.project?.createdAt)}</li>
+			<li>Updated At: {iso_to_plain_date(app_data.project?.updatedAt)}</li>
+			<li>Youtube Upload: <button class="small">Upload</button></li>
+		</ul>
+	</div>
+{/if}
+
+<button onclick={() => invoke('create_mp3', { path: app_data.project?.path })}>Make MP3</button>
+
+<label for="mp3_upload"></label>
+<progress id="mp3_upload" value={mp3_progress} max="100"></progress>
+
+<div class:hidden={!editor_visible} class:visible={editor_visible}>
+	<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
+	<button class="ghost" onclick={copyText}>Copy as Text</button>
+	<button class="ghost" onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
+	<button class="ghost" onclick={validateLinks} disabled={!!validation_status}
+		>Validate Links</button
+	>
 </div>
+{#if validation_status}
+	<p>{validation_status}</p>
+{/if}
+{#if invalid_urls.length}
+	<div class="error">
+		<p>The following invalid urls were found:</p>
+		<ul>
+			{#each invalid_urls as validation_result}
+				<li>{validation_result.statusText} | {validation_result.url}</li>
+			{/each}
+		</ul>
+	</div>
+{/if}
+<div
+	class:hidden={!editor_visible}
+	class:visible={editor_visible}
+	class="editor"
+	bind:this={editor}
+></div>
 
 <style>
-	h1 {
-		margin-bottom: 4rem;
-		&:focus {
-			outline: none;
-			border-bottom: solid 1px var(--yellow);
-		}
-	}
-
 	.intro {
 		display: flex;
 		align-items: center;
@@ -232,13 +212,6 @@
 		p {
 			text-align: center;
 		}
-	}
-
-	.container {
-		height: 90vh;
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
 	}
 
 	.error {

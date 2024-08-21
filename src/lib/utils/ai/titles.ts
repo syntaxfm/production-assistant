@@ -1,11 +1,12 @@
 import { fetch } from '@tauri-apps/plugin-http';
 
-export async function generate_titles() {
+export async function generate_titles(title: string) {
 	const response = await fetch('https://api.anthropic.com/v1/messages', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'anthropic-version': '2023-06-01'
+			'anthropic-version': '2023-06-01',
+			'x-api-key': import.meta.env.VITE_ANTHROPIC_KEY
 		},
 		body: JSON.stringify({
 			model: 'claude-3-5-sonnet-20240620',
@@ -19,7 +20,7 @@ export async function generate_titles() {
 					content: [
 						{
 							type: 'text',
-							text: '805 - We React to State of React Survey'
+							text: title
 						}
 					]
 				}

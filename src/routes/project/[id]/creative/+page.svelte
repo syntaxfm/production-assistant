@@ -11,9 +11,11 @@
 	async function titles() {
 		titles_status = 'GENERATING';
 		try {
-			const ai_titles = await generate_titles();
-			app_data.save({ id: data.id, ai_titles }, true);
-			titles_status = 'GENERATED';
+			if (app_data?.project?.name) {
+				const ai_titles = await generate_titles(app_data.project?.name);
+				app_data.save({ id: data.id, ai_titles }, true);
+				titles_status = 'GENERATED';
+			}
 		} catch (e) {
 			console.error(e);
 			titles_status = 'ERROR';

@@ -283,7 +283,7 @@ button,
 }
 
 .ghost {
-	border: solid 1px var(--fg);
+	border: solid 1px var(--tint-or-shade);
 	background: transparent;
 	color: var(--fg);
 	&:hover {

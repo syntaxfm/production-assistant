@@ -8,11 +8,13 @@
 	import type { FfprobeResult } from '$/lib/types/ffprobe';
 	import { convert_seconds, format_number, get_filename_from_path } from '$/lib/utils/text.js';
 	import { iso_to_plain_date } from '$/lib/utils/date';
+	import { listen } from '@tauri-apps/api/event';
 
 	let { data } = $props();
 	let error_message = $state('');
 	let editor: HTMLDivElement | null = $state(null);
 	let ink_instance: AwaitableInstance | null = null;
+	let mp3_progress = $state(0);
 	let notes = app_data?.project?.notes || '';
 	let status: 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED' = $state('INITIAL');
 	let editor_visible = $derived(!!app_data.project?.notes);
@@ -44,6 +46,16 @@
 		if (app_data.project?.path && status !== 'PROCESSING') {
 			status = 'COMPLETED';
 		}
+	});
+
+	$effect(() => {
+		listen('mp3_progress', (event) => {
+			console.log(typeof event, event.payload);
+			mp3_progress = event.payload as number;
+			// event = { payload: number }
+			// Update your UI with the progress
+			// For example, update a progress bar or text
+		});
 	});
 
 	const get_metadata = async (path: string) => {
@@ -157,6 +169,9 @@
 	{/if}
 
 	<button onclick={() => invoke('create_mp3', { path: app_data.project?.path })}>Make MP3</button>
+
+	<label for="mp3_upload"></label>
+	<progress id="mp3_upload" value={mp3_progress} max="100"></progress>
 
 	<div class:hidden={!editor_visible} class:visible={editor_visible}>
 		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>

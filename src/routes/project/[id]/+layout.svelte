@@ -5,6 +5,12 @@
 
 	let { children, data } = $props();
 
+	let mounted = $state(false);
+
+	$effect(() => {
+		mounted = true;
+	});
+
 	let links = [
 		{
 			text: 'Show',
@@ -15,8 +21,8 @@
 			href: `/project/${data.id}/notes`
 		},
 		{
-			text: 'Thumbnails',
-			href: `/project/${data.id}/thumbnails`
+			text: 'Creative',
+			href: `/project/${data.id}/creative`
 		},
 		{
 			text: 'Publish',
@@ -26,15 +32,23 @@
 </script>
 
 <div class="two-col">
-	<aside transition:fly={{ x: -200, duration: 200 }}>
-		<ul class="no-list">
-			<li><a href="/">All Projects</a></li>
-			{#each links as link}
-				<li>
-					<a aria-current={$page.url.pathname === link.href} href={link.href}>{link.text}</a>
-				</li>
-			{/each}
-		</ul>
+	<aside>
+		{#if mounted}
+			<div class="sidebar" transition:fly={{ x: -200, duration: 200 }}>
+				<ul class="no-list">
+					<li>
+						<a class="back" href="/"
+							><svg class="icon stroke-1"><use href="#icon-left-arrow" /></svg>All Projects</a
+						>
+					</li>
+					{#each links as link}
+						<li>
+							<a aria-current={$page.url.pathname === link.href} href={link.href}>{link.text}</a>
+						</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
 	</aside>
 	<section class="container layout">
 		<div class="content">
@@ -50,7 +64,7 @@
 
 			<div style="display: grid">
 				{#key data.pathname}
-					<div transition:fade style="grid-row: 1 / -1; grid-column: 1 / -1;">
+					<div transition:fade={{ duration: 200 }} style="grid-row: 1 / -1; grid-column: 1 / -1;">
 						{@render children()}
 					</div>
 				{/key}
@@ -65,10 +79,11 @@
 		grid-template-columns: 160px 1fr;
 	}
 
-	aside {
+	.sidebar {
 		padding-block-start: 6rem;
 		padding-inline-end: 30px;
 		border-inline-end: 1px solid var(--tint-or-shade);
+		height: 100%;
 		li {
 			font-size: var(--fs-xxs);
 			a {
@@ -78,11 +93,19 @@
 				color: var(--fg);
 				display: block;
 				padding: 2px 8px;
+				display: flex;
+				align-items: center;
+				gap: 8px;
 				border-radius: 8px;
 				&[aria-current='true'] {
-					background: var(--tint-or-shade);
+					background: var(--yellow);
+					color: var(--bg);
 					box-shadow: 1px 1px 4px rgb(0 0 0 / 0.4);
 					opacity: 1;
+					@media (prefers-color-scheme: light) {
+						background: var(--fg);
+						color: var(--bg);
+					}
 				}
 			}
 		}
@@ -99,5 +122,9 @@
 
 	.container {
 		min-height: 100vh;
+	}
+
+	.back {
+		margin-bottom: 1rem;
 	}
 </style>

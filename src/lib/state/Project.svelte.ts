@@ -15,11 +15,15 @@ export interface Project {
 	mp3_path?: string;
 	youtube_url?: string;
 	status: ProjectStatus;
+	ai_titles?: string[];
 }
 
 export const deserializeProject = (project: Project) => {
 	if (typeof project.chapters === 'string') {
 		project.chapters = JSON.parse(project.chapters);
+	}
+	if (typeof project.ai_titles === 'string') {
+		project.ai_titles = JSON.parse(project.ai_titles);
 	}
 	return project;
 };
@@ -29,6 +33,11 @@ export const serializeProject = (project: Project) => {
 		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 		// @ts-expect-error
 		project.chapters = JSON.stringify(project.chapters);
+	}
+	if (typeof project.ai_titles !== 'string') {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-expect-error
+		project.ai_titles = JSON.stringify(project.ai_titles);
 	}
 	return project;
 };

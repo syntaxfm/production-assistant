@@ -28,7 +28,14 @@
 	--red: #ff474e;
 
 	--tint-or-shade: color-mix(in oklab, var(--fg), transparent 90%);
-	--shade-or-tint: color-mix(in oklab, var(--bg), oklab(0% 0 0) 10%);
+	--tint-or-shade: light-dark(
+		color-mix(in oklab, var(--fg), transparent 95%),
+		color-mix(in oklab, var(--fg), transparent 90%)
+	);
+	--shade-or-tint: light-dark(
+		color-mix(in oklab, var(--bg), oklab(0% 0 0) 3%),
+		color-mix(in oklab, var(--bg), oklab(0% 0 0) 10%)
+	);
 	--tint-or-shade-hard-overlay: color-mix(in oklab, var(--bg), transparent 20%);
 	color-scheme: light dark;
 }
@@ -279,7 +286,14 @@ button,
 	padding-inline: 15px;
 	font-size: var(--fs-xs);
 	text-decoration: none;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	gap: 10px;
 	box-shadow: 1px 1px 4px rgb(0 0 0 / 0.4);
+	@media (prefers-color-scheme: light) {
+		box-shadow: 1px 1px 3px rgb(0 0 0 / 0.1);
+	}
 }
 
 .ghost {
@@ -321,5 +335,20 @@ h1 {
 		font-size: 16px;
 		box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
 		background: var(--shade-or-tint);
+		@media (prefers-color-scheme: light) {
+			background: transparent;
+			box-shadow: none;
+		}
 	}
+}
+
+.error {
+	border-radius: 4px;
+	border: solid 1px var(--fg);
+	background-color: transparent;
+	display: flex;
+	flex-direction: column;
+	padding: 20px;
+	color: var(--red);
+	font-size: var(--fs-xxs);
 }

@@ -6,13 +6,16 @@
 	import { fade, slide } from 'svelte/transition';
 	import { invoke } from '@tauri-apps/api/core';
 	import type { FfprobeResult } from '$/lib/types/ffprobe';
-	import { convert_seconds, format_number, get_filename_from_path } from '$/lib/utils/text.js';
+	import { convert_seconds, format_number, get_filename_from_path } from '$/lib/utils/text';
 	import { iso_to_plain_date } from '$/lib/utils/date';
 	import { listen } from '@tauri-apps/api/event';
+	import { validate_urls, type UrlValidation } from '$/lib/utils/markdown/validate';
 
 	let { data } = $props();
 	let error_message = $state('');
 	let editor: HTMLDivElement | null = $state(null);
+	let invalid_urls: UrlValidation[] = $state<UrlValidation[]>([]);
+	let validation_status = $state('');
 	let ink_instance: AwaitableInstance | null = null;
 	let mp3_progress = $state(0);
 	let notes = app_data?.project?.notes || '';
@@ -127,6 +130,16 @@
 		const text = textNodes.join('\n');
 		copyToClipboard(text);
 	};
+
+	const validateLinks = async () => {
+		validation_status = 'Validating urls...';
+		invalid_urls = [];
+		invalid_urls = await validate_urls(notes, (progress) => {
+			console.log(progress);
+			validation_status = `Validated ${progress.completed} of ${progress.total} links...`;
+		});
+		validation_status = '';
+	};
 </script>
 
 {#if status === 'PROCESSING'}
@@ -177,7 +190,23 @@
 		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
 		<button class="ghost" onclick={copyText}>Copy as Text</button>
 		<button class="ghost" onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
+		<button class="ghost" onclick={validateLinks} disabled={!!validation_status}
+			>Validate Links</button
+		>
 	</div>
+	{#if validation_status}
+		<p>{validation_status}</p>
+	{/if}
+	{#if invalid_urls.length}
+		<div class="error">
+			<p>The following invalid urls were found:</p>
+			<ul>
+				{#each invalid_urls as validation_result}
+					<li>{validation_result.statusText} | {validation_result.url}</li>
+				{/each}
+			</ul>
+		</div>
+	{/if}
 	<div
 		class:hidden={!editor_visible}
 		class:visible={editor_visible}

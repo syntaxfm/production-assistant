@@ -178,6 +178,7 @@ fn create_mp3(path: &str, app_handle: tauri::AppHandle) -> Result<Mp3Result, Str
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_http::init())
         .setup(|app| {
             let window = app.get_webview_window("main").unwrap();
             let monitor = window.current_monitor().unwrap().unwrap();

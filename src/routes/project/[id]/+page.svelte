@@ -113,9 +113,8 @@
 		get_metadata(path);
 		make_mp3(path);
 		const name = get_filename_from_path(path);
-		console.log('name', name);
 		const frontmatter = create_frontmatter(name);
-		console.log('frontmatter', frontmatter);
+
 		app_data.save({ id: data.id, name, path, frontmatter }, true);
 	}
 
@@ -209,7 +208,16 @@
 					{/if}
 				</div>
 				<div>
-					<a href="/project/{data.id}/publish" class="button ghost small">Start Upload</a>
+					{#if app_data.project?.youtube_url}
+						<a
+							style="width: auto; display: inline-block"
+							href={app_data.project?.youtube_url}
+							target="_blank"
+							class="button ghost small">Visit On Youtube</a
+						>
+					{:else}
+						<a href="/project/{data.id}/publish" class="button ghost small">Start Upload</a>
+					{/if}
 				</div>
 			</div>
 		</div>

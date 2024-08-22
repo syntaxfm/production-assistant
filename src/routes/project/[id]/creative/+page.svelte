@@ -23,10 +23,11 @@
 	}
 </script>
 
-<h2>Creative</h2>
-
-<h3>Titles</h3>
+<h2>Titles</h2>
 {#if titles_status === 'GENERATED'}
+	<button onclick={titles}
+		><svg class="icon stroke-1"><use href="#icon-wand-sparkle" /></svg> Regenerate Titles</button
+	>
 	<ol class="click-bait">
 		{#each app_data?.project?.ai_titles as title}
 			<li>
@@ -34,9 +35,6 @@
 			</li>
 		{/each}
 	</ol>
-	<button onclick={titles}
-		><svg class="icon stroke-1"><use href="#icon-wand-sparkle" /></svg> Regenerate Titles</button
-	>
 {:else if titles_status === 'INITIAL'}<button onclick={titles}
 		><svg class="icon stroke-1"><use href="#icon-wand-sparkle" /></svg> Generate Titles</button
 	>
@@ -47,8 +45,8 @@
 	</div>
 {/if}
 
-<h3>Thumbnails</h3>
-<button>Generate Thumbnail People</button>
+<!-- <h3>Thumbnails</h3>
+<button>Generate Thumbnail People</button> -->
 
 <style>
 	.click-bait {

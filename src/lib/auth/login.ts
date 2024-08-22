@@ -31,8 +31,37 @@ export const login_github = async (code: string) => {
 			client_secret: import.meta.env.VITE_GITHUB_CLIENT_SECRET
 		})
 	});
+
 	const json = (await response.json()) as GithubOauthResponse;
 	localStorage.setItem(GITHUB_TOKEN_KEY, json.access_token);
 	github_data.user = await get_github_user();
 	in_progress = false;
+};
+
+let in_yt_progress = false;
+export const login_youtube = async (code: string) => {
+	if (in_progress) return;
+	in_yt_progress = true;
+
+	const tokenEndpoint = 'https://oauth2.googleapis.com/token';
+
+	const params = new URLSearchParams({
+		code: code,
+		client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+		client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET,
+		redirect_uri: 'https://syntax.fm/some/not/found/path/auth/callback',
+		grant_type: 'authorization_code'
+	});
+
+	const response = await fetch(tokenEndpoint, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded'
+		},
+		body: params
+	});
+
+	const json = (await response.json()) as GithubOauthResponse;
+	localStorage.setItem('youtube_token', json.access_token);
+	in_yt_progress = false;
 };

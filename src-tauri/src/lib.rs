@@ -2,8 +2,10 @@ use chrono::Local;
 use colored::*;
 use ffmpeg_sidecar::{command::FfmpegCommand, event::FfmpegEvent, ffprobe::ffprobe_path};
 use regex::Regex;
+use reqwest::Client;
 use serde::Serialize;
-use std::{path::PathBuf, process::Command, time::Duration};
+use serde_json::json;
+use std::{fs::File, io::Read, path::PathBuf, process::Command, time::Duration};
 use tauri::{Emitter, Manager};
 use tauri_plugin_decorum::WebviewWindowExt;
 
@@ -19,7 +21,18 @@ fn login_github(app_handle: tauri::AppHandle) {
         .get_webview_window("login")
         .expect("Cannot get login window");
     window
-        .eval("window.location.replace('https://github.com/login/oauth/authorize?client_id=Ov23licxOzkJuzZtsOZL&skip_account_picker=false&scope=read:user repo')")
+        .eval("window.location.replace('https://github.com/login/oauth/authorize?client_id=Ov23licxOzkJuzZtsOZL&skip_accoun t_picker=false&scope=read:user repo')")
+        .expect("Unable to redirect login.");
+    window.show().expect("Unable to show window");
+}
+
+#[tauri::command]
+fn login_youtube(app_handle: tauri::AppHandle) {
+    let window = app_handle
+        .get_webview_window("login")
+        .expect("Cannot get login window");
+    window
+        .eval("window.location.replace('https://accounts.google.com/o/oauth2/v2/auth?client_id=464375532673-9mrbvgd110g1eh02im4qli2ooos43n59.apps.googleusercontent.com&redirect_uri=https://syntax.fm/some/not/found/path/auth/callback&scope=https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtubepartner&response_type=code&access_type=offline&prompt=consent select_account&include_granted_scopes=true')")
         .expect("Unable to redirect login.");
     window.show().expect("Unable to show window");
 }
@@ -193,6 +206,112 @@ fn open_in_finder(path: &str) {
     Command::new("open").args(["-R", path]).spawn().unwrap();
 }
 
+#[tauri::command]
+async fn upload_to_youtube(
+    file_path: String,
+    access_token: String,
+    title: String,
+    description: String,
+    privacy_status: String,
+    window: tauri::Window,
+) -> Result<String, String> {
+    println!("upload_to_youtube called with file_path: {}", file_path);
+
+    let client = Client::new();
+
+    // Initiate the upload
+    let init_url = "https://www.googleapis.com/upload/youtube/v3/videos?uploadType=resumable&part=snippet,status,contentDetails";
+    let metadata = json!({
+        "snippet": {
+            "title": title,
+            "description": description,
+            "categoryId": "22"
+        },
+        "status": {
+            "privacyStatus": privacy_status
+        }
+    });
+    println!(
+        "Request metadata: {}",
+        serde_json::to_string_pretty(&metadata).unwrap()
+    );
+
+    let init_response = client
+        .post(init_url)
+        .header("Authorization", format!("Bearer {}", access_token))
+        .header("Content-Type", "application/json")
+        .json(&metadata)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    println!("Response status: {:?}", init_response.status());
+    println!("Response headers: {:?}", init_response.headers());
+
+    let status = init_response.status();
+    let headers = init_response.headers().clone();
+    let body = init_response.text().await.map_err(|e| e.to_string())?;
+
+    if !status.is_success() {
+        return Err(format!(
+            "Failed to initiate upload: Status: {:?}, Body: {}",
+            status, body
+        ));
+    }
+
+    let upload_url = headers
+        .get("Location")
+        .ok_or("No upload URL received")?
+        .to_str()
+        .map_err(|e| e.to_string())?
+        .to_string();
+
+    // Upload the file
+    let mut file = File::open(file_path).map_err(|e| e.to_string())?;
+    let file_size = file.metadata().map_err(|e| e.to_string())?.len();
+    let chunk_size = 5 * 1024 * 1024; // 5MB chunks
+
+    let mut buffer = vec![0; chunk_size as usize];
+    let mut uploaded = 0;
+
+    while uploaded < file_size {
+        let bytes_read = file.read(&mut buffer).map_err(|e| e.to_string())?;
+        if bytes_read == 0 {
+            break;
+        }
+
+        let chunk = &buffer[..bytes_read];
+        let content_range = format!(
+            "bytes {}-{}/{}",
+            uploaded,
+            uploaded + bytes_read as u64 - 1,
+            file_size
+        );
+
+        let response = client
+            .put(&upload_url)
+            .header("Content-Range", content_range)
+            .body(chunk.to_vec())
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        uploaded += bytes_read as u64;
+
+        // Send progress update to frontend
+        let progress = (uploaded as f64 / file_size as f64 * 100.0) as u32;
+        window
+            .emit("youtube_progress", progress)
+            .map_err(|e| e.to_string())?;
+
+        if response.status().is_success() {
+            return Ok(response.text().await.map_err(|e| e.to_string())?);
+        }
+    }
+
+    Err("Upload failed".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -232,7 +351,9 @@ pub fn run() {
             open_in_finder,
             get_video_path,
             login_github,
-            hide_login_window
+            hide_login_window,
+            login_youtube,
+            upload_to_youtube,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

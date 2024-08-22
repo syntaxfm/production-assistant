@@ -1,3 +1,4 @@
+import marked from '$lib/utils/markdown';
 import { load, dump } from 'js-yaml';
 
 export function get_filename_from_path(path: string) {
@@ -98,4 +99,34 @@ export function get_number_and_title_from_name(name: string) {
 		// If there's no match, return null or throw an error
 		return null; // or throw new Error("Invalid format");
 	}
+}
+
+export function make_text_notes_from_md(notes: string) {
+	const html = marked.render(notes);
+	const element = document.createElement('div');
+	element.innerHTML = html;
+	const textNodes: string[] = [];
+	element.childNodes.forEach((node) => {
+		textNodes.push(node.textContent || '');
+	});
+	const text = textNodes.join('\n');
+	return text;
+}
+
+export function sanitizeDescription(description: string) {
+	const text_version = make_text_notes_from_md(description);
+	// Trim to 5000 characters
+	let sanitized = text_version.slice(0, 5000);
+
+	// Replace unsupported HTML tags (keep only supported ones)
+	sanitized = sanitized.replace(/<(?!\/?(b|i|u|a))[^>]+>/g, '');
+
+	// Ensure proper newline encoding
+	sanitized = sanitized.replace(/\r\n|\r|\n/g, '\n');
+
+	// Remove any potential null characters
+	sanitized = sanitized.replace(/\0/g, '');
+	console.log('sanitized', sanitized);
+
+	return sanitized;
 }

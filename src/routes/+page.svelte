@@ -9,6 +9,7 @@
 	<div class="settings flex">
 		<h1>My Projects</h1>
 		<div class="flex settings-buttons">
+			<button class="small ghost" onclick={() => invoke('login_youtube')}>Login Youtube</button>
 			<button class="small ghost" onclick={() => invoke('login_github')}>Login Github</button>
 			<label class="button small ghost"
 				>Import Data

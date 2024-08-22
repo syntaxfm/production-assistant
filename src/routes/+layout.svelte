@@ -5,13 +5,12 @@
 	import { app_data } from '$state/Project.svelte';
 	import './style.css';
 	import { invoke } from '@tauri-apps/api/core';
-	import { login_github, set_github_user_if_token } from '$/lib/auth/login';
+	import { login_github, login_youtube, set_github_user_if_token } from '$/lib/auth/login';
 	import '$lib/icons/style.css';
-	import { onMount } from 'svelte';
 	let { children } = $props();
 	app_data.sync();
 
-	onMount(() => {
+	$effect(() => {
 		set_github_user_if_token();
 	});
 
@@ -30,17 +29,105 @@
 		if (event.payload) {
 			const url = new URL(event.payload as string);
 			const code = url.searchParams.get('code');
-			if (code) {
-				invoke('hide_login_window');
-				login_github(code);
+			if (url.href.includes('syntax.fm/some/not')) {
+				if (code) {
+					invoke('hide_login_window');
+					login_youtube(code);
+				}
+			} else {
+				if (code) {
+					invoke('hide_login_window');
+					login_github(code);
+				}
 			}
 		}
 	});
+
+	async function getYoutubeUserData() {
+		const access_token = localStorage.getItem('youtube_token');
+		const apiUrl =
+			'https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails,statistics&mine=true';
+
+		try {
+			const response = await fetch(apiUrl, {
+				method: 'GET',
+				headers: {
+					Authorization: `Bearer ${access_token}`,
+					Accept: 'application/json'
+				}
+			});
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const data = await response.json();
+			console.log('data', data);
+
+			if (data.items && data.items.length > 0) {
+				const channelData = data.items[0];
+				console.log('channelData', channelData);
+				console.log('Channel Title:', channelData.snippet.title);
+				console.log('Channel Description:', channelData.snippet.description);
+				console.log('Subscriber Count:', channelData.statistics.subscriberCount);
+				console.log('View Count:', channelData.statistics.viewCount);
+				console.log('Video Count:', channelData.statistics.videoCount);
+				return channelData;
+			} else {
+				console.log('No channel data found');
+				return null;
+			}
+		} catch (error) {
+			console.error('Error fetching YouTube user data:', error);
+			throw error;
+		}
+	}
+
+	async function verifyYT() {
+		const access_token = localStorage.getItem('youtube_token');
+
+		try {
+			const response = await fetch(
+				`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${access_token}`
+			);
+
+			if (!response.ok) {
+				throw new Error(`HTTP error! status: ${response.status}`);
+			}
+
+			const data = await response.json();
+			console.log('Token info:', data);
+
+			// Check if the required scopes are present
+			const requiredScopes = [
+				'https://www.googleapis.com/auth/youtube',
+				'https://www.googleapis.com/auth/youtube.force-ssl',
+				'https://www.googleapis.com/auth/youtubepartner'
+			];
+
+			const tokenScopes = data.scope.split(' ');
+			const missingScopes = requiredScopes.filter((scope) => !tokenScopes.includes(scope));
+
+			if (missingScopes.length > 0) {
+				console.warn('Missing scopes:', missingScopes);
+			}
+
+			return data;
+		} catch (error) {
+			console.error('Error verifying token:', error);
+			throw error;
+		}
+	}
 </script>
 
 <main class="layout">
 	{@render children()}
 </main>
+
+<!-- TESTING ZONE -->
+<!-- THESE VALIDATE THE YT LOGIN -->
+<!-- <button onclick={getYoutubeUserData}>GET YT</button>
+<button onclick={verifyYT}>Verify YT</button> -->
 
 <svg xmlns="http://www.w3.org/2000/svg" style="height: 0; width: 0; position: absolute;"
 	><symbol id="icon-wand-sparkle" viewBox="0 0 18 18"

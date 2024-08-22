@@ -21,11 +21,11 @@
                 "width": 800
             },
             {
-                "label": "login",
-                "height": 600,
-                "visible": false,
                 "decorations": true,
+                "height": 600,
                 "hiddenTitle": true,
+                "label": "login",
+                "visible": false,
                 "width": 800
             }
         ],
@@ -49,6 +49,13 @@
         "targets": "all"
     },
     "identifier": "com.syntax-production-assistant.app",
+    "plugins": {
+        "fs": {
+            "scope": [
+                "**"
+            ]
+        }
+    },
     "productName": "syntax-production-assistant",
     "version": "0.1.0"
 }

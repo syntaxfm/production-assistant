@@ -1,11 +1,21 @@
 <script lang="ts">
 	import { create_show_pr } from '$/lib/utils/github/api';
+	import { uploadVideoToYouTube } from '$/lib/utils/youtube.js';
 	import { app_data } from '$state/Project.svelte';
+	import { listen } from '@tauri-apps/api/event';
 
 	let { data } = $props();
 
 	let pr_loading = $state(false);
 	let project = $derived(app_data.project);
+	let yt_progress = $state(0);
+
+	$effect(() => {
+		listen('youtube_progress', (event) => {
+			console.log('youtube_progress', event);
+			yt_progress = event.payload as number;
+		});
+	});
 
 	const create_github_pr = async () => {
 		if (project && project.notes) {
@@ -43,19 +53,39 @@ Randy: [X](https://twitter.com/randyrektor) [Instagram](https://www.instagram.co
 			pr_loading = false;
 		}
 	};
+
+	async function upload_to_youtube() {
+		const access_token = localStorage.getItem('youtube_token');
+		if (access_token) {
+			const { videoUrl } = await uploadVideoToYouTube(
+				access_token,
+				project?.path,
+				project?.name,
+				project?.notes,
+				'private'
+			);
+
+			app_data.save({ id: data.id, youtube_url: videoUrl });
+		} else {
+			console.error('Not authorized');
+		}
+	}
 </script>
 
-<h2>Publish</h2>
-
-<h3>Youtube</h3>
+<h2>Youtube</h2>
 {#if app_data.project?.youtube_url}
-	<a href={app_data.project?.youtube_url} class="button">Visit On Youtube</a>
+	<a
+		style="width: auto; display: inline-block"
+		href={app_data.project?.youtube_url}
+		target="_blank"
+		class="button">Visit On Youtube</a
+	>
 {:else}
-	<progress></progress>
-	<button>Upload To Youtube</button>
+	<progress max="100" value={yt_progress}></progress>
+	<button onclick={upload_to_youtube}>Upload To Youtube</button>
 {/if}
 
-<h3>Github</h3>
+<h2>Github</h2>
 <small>TODO: after create, url only shows on refresh...</small>
 <br />
 {#if pr_loading}

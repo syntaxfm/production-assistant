@@ -7,12 +7,6 @@ use std::{path::PathBuf, process::Command, time::Duration};
 use tauri::{Emitter, Manager};
 use tauri_plugin_decorum::WebviewWindowExt;
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 #[tauri::command]
 fn get_video_path(path: String) -> String {
     let path = std::path::Path::new(&path);
@@ -208,7 +202,6 @@ pub fn run() {
         })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
-            greet,
             get_metadata,
             create_mp3,
             open_in_finder,

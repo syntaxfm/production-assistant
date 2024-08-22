@@ -6,16 +6,53 @@
 	import type { FfprobeResult } from '$/lib/types/ffprobe';
 	import { convert_seconds, get_filename_from_path } from '$/lib/utils/text';
 	import { listen } from '@tauri-apps/api/event';
+	import { convertFileSrc } from '@tauri-apps/api/core';
 
 	let { data } = $props();
 	let error_message = $state('');
 	let mp3_progress = $state(0);
+	let video: null | HTMLVideoElement = $state(null);
+	let audio: null | HTMLAudioElement = $state(null);
 
 	$effect(() => {
 		listen('mp3_progress', (event) => {
 			mp3_progress = event.payload as number;
 		});
 	});
+
+	$effect(() => {
+		if (app_data?.project?.path) {
+			loadVideo(app_data?.project?.path);
+		}
+	});
+
+	$effect(() => {
+		if (app_data?.project?.mp3_path) {
+			loadAudio(app_data?.project?.mp3_path);
+		}
+	});
+
+	async function loadVideo(filePath: string) {
+		try {
+			if (video) {
+				const videoUrl = convertFileSrc(filePath);
+				video.src = videoUrl as string;
+			}
+		} catch (error) {
+			console.error('Error loading video:', error);
+		}
+	}
+
+	async function loadAudio(filePath: string) {
+		try {
+			if (audio) {
+				const audioUrl = convertFileSrc(filePath);
+				audio.src = audioUrl as string;
+			}
+		} catch (error) {
+			console.error('Error loading video:', error);
+		}
+	}
 
 	const get_metadata = async (path: string) => {
 		error_message = '';
@@ -101,6 +138,9 @@
 		<div class="error">{error_message}</div>
 	{/if}
 
+	<video bind:this={video} controls></video>
+	<audio bind:this={audio} controls></audio>
+
 	{#if app_data.project.status === 'COMPLETED'}
 		<div class="meta box filled">
 			<div>
@@ -169,6 +209,13 @@
 {/if}
 
 <style>
+	video,
+	audio {
+		width: 100%;
+		box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+		margin-bottom: 1rem;
+	}
+
 	.intro {
 		display: flex;
 		align-items: center;

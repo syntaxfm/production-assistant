@@ -73,12 +73,14 @@
 </script>
 
 <div class:hidden={!editor_visible} class:visible={editor_visible}>
-	<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
-	<button class="ghost" onclick={copyText}>Copy as Text</button>
-	<button class="ghost" onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
-	<button class="ghost" onclick={validateLinks} disabled={!!validation_status}
-		>Validate Links</button
-	>
+	<div class="flex">
+		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
+		<button class="ghost" onclick={copyText}>Copy as Text</button>
+		<button class="ghost" onclick={() => copyToClipboard(notes)}>Copy as Markdown</button>
+		<button class="ghost" onclick={validateLinks} disabled={!!validation_status}
+			>Validate Links</button
+		>
+	</div>
 </div>
 {#if validation_status}
 	<p>{validation_status}</p>

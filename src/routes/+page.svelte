@@ -76,7 +76,10 @@
 		justify-content: space-between;
 		align-items: start;
 		.settings-buttons {
-			margin-top: 1rem;
+			position: fixed;
+			top: 1rem;
+			right: 1rem;
+			z-index: 101;
 		}
 	}
 </style>

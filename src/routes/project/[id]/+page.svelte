@@ -138,8 +138,13 @@
 		<div class="error">{error_message}</div>
 	{/if}
 
-	<video bind:this={video} controls></video>
-	<audio bind:this={audio} controls></audio>
+	{#if app_data?.project?.path}
+		<video bind:this={video} controls></video>
+	{/if}
+
+	{#if app_data?.project?.mp3_path}
+		<audio bind:this={audio} controls></audio>
+	{/if}
 
 	{#if app_data.project.status === 'COMPLETED'}
 		<div class="meta box filled">
@@ -220,6 +225,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		border-style: dashed;
 		height: 100%;
 		p {
 			text-align: center;

@@ -352,3 +352,7 @@ h1 {
 	color: var(--red);
 	font-size: var(--fs-xxs);
 }
+
+hr {
+	color: var(--tint-or-shade);
+}

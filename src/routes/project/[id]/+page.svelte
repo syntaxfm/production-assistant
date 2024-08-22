@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { app_data } from '$state/Project.svelte.js';
+	import { app_data, create_frontmatter } from '$state/Project.svelte.js';
 	import { getCurrentWebview } from '@tauri-apps/api/webview';
 	import { fade, slide } from 'svelte/transition';
 	import { invoke } from '@tauri-apps/api/core';
@@ -113,7 +113,10 @@
 		get_metadata(path);
 		make_mp3(path);
 		const name = get_filename_from_path(path);
-		app_data.save({ id: data.id, name, path }, true);
+		console.log('name', name);
+		const frontmatter = create_frontmatter(name);
+		console.log('frontmatter', frontmatter);
+		app_data.save({ id: data.id, name, path, frontmatter }, true);
 	}
 
 	function open_in_finder(path: string) {

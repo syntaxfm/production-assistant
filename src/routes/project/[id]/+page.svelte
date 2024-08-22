@@ -226,7 +226,7 @@
 		align-items: center;
 		justify-content: center;
 		border-style: dashed;
-		height: 100%;
+		height: 80%;
 		p {
 			text-align: center;
 		}

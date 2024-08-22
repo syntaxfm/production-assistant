@@ -71,7 +71,7 @@
 				{app_data.project?.name || 'Loading...'}
 			</h1>
 
-			<div style="display: grid; height: 100%;">
+			<div style="display: grid; height: 60vh;">
 				{#key data.pathname}
 					<div transition:fade={{ duration: 200 }} style="grid-row: 1 / -1; grid-column: 1 / -1;">
 						{@render children()}
@@ -130,7 +130,8 @@
 	}
 
 	.container {
-		min-height: 100vh;
+		height: 100vh;
+		overflow: auto;
 	}
 
 	.back {

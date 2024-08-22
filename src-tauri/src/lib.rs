@@ -7,10 +7,10 @@ use std::{path::PathBuf, process::Command, time::Duration};
 use tauri::{Emitter, Manager};
 use tauri_plugin_decorum::WebviewWindowExt;
 
-// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+fn get_video_path(path: String) -> String {
+    let path = std::path::Path::new(&path);
+    format!("file://{}", path.display())
 }
 
 #[tauri::command]
@@ -200,27 +200,14 @@ pub fn run() {
         .plugin(tauri_plugin_decorum::init()) // initialize the decorum plugin
         .setup(|app| {
             // Create a custom titlebar for main window
-            // On Windows this hides decoration and creates custom window controls
             // On macOS it needs hiddenTitle: true and titleBarStyle: overlay
             let window = app.get_webview_window("main").unwrap();
-            window.create_overlay_titlebar().unwrap();
-
-            // Some macOS-specific helpers
-            #[cfg(target_os = "macos")]
-            {
-                // Set a custom inset to the traffic lights
-                window.set_traffic_lights_inset(12.0, 16.0).unwrap();
-
-                // Make window transparent without privateApi
-                window.make_transparent().unwrap();
-
-                // Set window level
-                // NSWindowLevel: https://developer.apple.com/documentation/appkit/nswindowlevel
-                // window.set_window_level(25).unwrap();
-            }
-
             let monitor = window.current_monitor().unwrap().unwrap();
             let size = monitor.size();
+            window.create_overlay_titlebar().unwrap();
+
+            #[cfg(target_os = "macos")]
+            window.set_traffic_lights_inset(30.0, 20.0).unwrap();
 
             // Calculate 80% of the screen size
             let width = (size.width as f64 * 0.7) as u32;
@@ -240,10 +227,10 @@ pub fn run() {
         })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
-            greet,
             get_metadata,
             create_mp3,
             open_in_finder,
+            get_video_path,
             login_github,
             hide_login_window
         ])

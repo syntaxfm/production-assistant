@@ -41,11 +41,20 @@
 							><svg class="icon stroke-1"><use href="#icon-left-arrow" /></svg>All Projects</a
 						>
 					</li>
-					{#each links as link}
+					{#if app_data.project?.path}
+						{#each links as link}
+							<li>
+								<a aria-current={$page.url.pathname === link.href} href={link.href}>{link.text}</a>
+							</li>
+						{/each}
+					{:else}
 						<li>
-							<a aria-current={$page.url.pathname === link.href} href={link.href}>{link.text}</a>
+							<a
+								aria-current={$page.url.pathname === `/project/${data.id}`}
+								href={`/project/${data.id}`}>Show</a
+							>
 						</li>
-					{/each}
+					{/if}
 				</ul>
 			</div>
 		{/if}
@@ -62,7 +71,7 @@
 				{app_data.project?.name || 'Loading...'}
 			</h1>
 
-			<div style="display: grid">
+			<div style="display: grid; height: 100%;">
 				{#key data.pathname}
 					<div transition:fade={{ duration: 200 }} style="grid-row: 1 / -1; grid-column: 1 / -1;">
 						{@render children()}

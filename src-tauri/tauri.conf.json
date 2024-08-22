@@ -1,10 +1,19 @@
 {
     "app": {
         "security": {
-            "csp": null
+            "assetProtocol": {
+                "enable": true,
+                "scope": [
+                    "**"
+                ]
+            },
+            "capabilities": [],
+            "csp": "default-src 'self' asset: http://asset.localhost",
+            "devCsp": "default-src 'self' asset: http://asset.localhost"
         },
         "windows": [
             {
+                "fullscreen": false,
                 "height": 600,
                 "hiddenTitle": true,
                 "title": "Syntax Production Assistant",
@@ -19,7 +28,8 @@
                 "hiddenTitle": true,
                 "width": 800
             }
-        ]
+        ],
+        "withGlobalTauri": true
     },
     "build": {
         "beforeBuildCommand": "pnpm build",

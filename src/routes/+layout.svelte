@@ -5,10 +5,15 @@
 	import { app_data } from '$state/Project.svelte';
 	import './style.css';
 	import { invoke } from '@tauri-apps/api/core';
-	import { login_github } from '$/lib/auth/login';
+	import { login_github, set_github_user_if_token } from '$/lib/auth/login';
 	import '$lib/icons/style.css';
+	import { onMount } from 'svelte';
 	let { children } = $props();
 	app_data.sync();
+
+	onMount(() => {
+		set_github_user_if_token();
+	});
 
 	onNavigate(async (navigation) => {
 		if (!document.startViewTransition) return;

@@ -2,11 +2,18 @@ import { goto } from '$app/navigation';
 import { localDB } from '$lib/db/local_db';
 import { generate_id } from '$lib/utils/date';
 import type { Chapter } from '$lib/types/ffprobe';
+import {
+	date_string_to_unix_mili,
+	get_number_and_title_from_name,
+	get_today_in_unix_mili,
+	modify_yaml
+} from '../utils/text';
 
 export type ProjectStatus = 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED';
 export interface Project {
 	id: string;
 	notes?: string;
+	frontmatter?: string;
 	name: string;
 	createdAt: string;
 	chapters?: Chapter[];
@@ -17,6 +24,67 @@ export interface Project {
 	status: ProjectStatus;
 	ai_titles?: string[];
 	pr_url?: string;
+}
+
+export function update_frontmatter_date(e) {
+	if (app_data.project) {
+		const mili = date_string_to_unix_mili(e.target.value);
+		const new_frontmatter = modify_yaml(app_data.project.frontmatter, 'date', mili);
+
+		app_data.save({ id: app_data.project.id, frontmatter: new_frontmatter }, true);
+		return new_frontmatter;
+	}
+}
+
+export function add_single_guest(id: string) {
+	const SINGLE_GUEST_TEMPLATE = `
+guest:
+  name: TODO
+  github: TODO
+  twitter: TODO
+  of: TODO
+  url: TODO
+  social: TODO`;
+	if (app_data?.project?.frontmatter) {
+		const new_frontmatter = app_data.project.frontmatter + SINGLE_GUEST_TEMPLATE;
+		app_data.save({ id, frontmatter: new_frontmatter }, true);
+		return new_frontmatter;
+	}
+}
+export function add_multiple_guests(id: string) {
+	const MULTI_GUEST_TEMPLATE = `
+guest:
+  - name: Anne Thomas
+    github: AlfalfaAnne
+    twitter: AlfalfaAnne
+    of: Design Packs
+    url: https://design-packs.com/
+    social: https://www.linkedin.com/in/annethomas8
+  - name: Trudy MacNabb
+    github: deartrudence
+    twitter: dear_trudence
+    of: Design Packs
+    url: https://design-packs.com/
+    social: https://www.linkedin.com/in/trudy-macnabb-7b19104a`;
+	if (app_data?.project?.frontmatter) {
+		const new_frontmatter = app_data.project.frontmatter + MULTI_GUEST_TEMPLATE;
+		app_data.save({ id, frontmatter: new_frontmatter }, true);
+		return new_frontmatter;
+	}
+}
+
+export function create_frontmatter(name: string) {
+	const parsed_name = get_number_and_title_from_name(name);
+	const number = parsed_name?.number;
+	const title = parsed_name?.title;
+	const date = get_today_in_unix_mili();
+	console.log('date', date);
+	const DEFAULT_FRONTMATTER = `number: ${number}
+title: ${title}
+date: ${date}
+url: TODO
+youtube_url: TODO`;
+	return DEFAULT_FRONTMATTER;
 }
 
 export const deserializeProject = (project: Project) => {
@@ -47,6 +115,8 @@ export function createData() {
 	let projects: Project[] = $state([]);
 	let project: Project | undefined = $state();
 
+	$inspect(project);
+
 	async function sync() {
 		projects = (await localDB.projects.toArray()).map(deserializeProject);
 	}
@@ -67,8 +137,9 @@ export function createData() {
 			notes: '',
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
-			name: 'New Project',
-			status: 'INITIAL' as ProjectStatus
+			name: '900 - New Project',
+			status: 'INITIAL' as ProjectStatus,
+			frontmatter: ``
 		};
 		await localDB.projects.put(db_project);
 		await sync();

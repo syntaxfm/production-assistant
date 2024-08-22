@@ -1,4 +1,5 @@
 import { error } from '@sveltejs/kit';
+export const prerender = false;
 
 export const load = async function ({ params }) {
 	if (!params.id)

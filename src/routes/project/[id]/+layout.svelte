@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { get_number_and_title_from_name, modify_yaml } from '$/lib/utils/text.js';
 	import { page } from '$app/stores';
 	import { app_data } from '$state/Project.svelte';
 	import { fade, fly } from 'svelte/transition';
@@ -61,13 +62,7 @@
 	</aside>
 	<section class="container layout">
 		<div class="content">
-			<h1
-				oninput={(e) => {
-					const target = e.target as HTMLElement;
-					app_data.save({ id: data.id, name: target?.textContent ?? '' });
-				}}
-				contenteditable
-			>
+			<h1>
 				{app_data.project?.name || 'Loading...'}
 			</h1>
 

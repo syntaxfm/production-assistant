@@ -19,6 +19,14 @@
                 "title": "Syntax Production Assistant",
                 "titleBarStyle": "Overlay",
                 "width": 800
+            },
+            {
+                "label": "login",
+                "height": 600,
+                "visible": false,
+                "decorations": true,
+                "hiddenTitle": true,
+                "width": 800
             }
         ],
         "withGlobalTauri": true

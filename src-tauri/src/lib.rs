@@ -14,6 +14,28 @@ fn get_video_path(path: String) -> String {
 }
 
 #[tauri::command]
+fn login_github(app_handle: tauri::AppHandle) {
+    let window = app_handle
+        .get_webview_window("login")
+        .expect("Cannot get login window");
+    window
+        .eval("window.location.replace('https://github.com/login/oauth/authorize?client_id=Ov23licxOzkJuzZtsOZL&skip_account_picker=false&scope=read:user repo')")
+        .expect("Unable to redirect login.");
+    window.show().expect("Unable to show window");
+}
+
+#[tauri::command]
+fn hide_login_window(app_handle: tauri::AppHandle) {
+    let window = app_handle
+        .get_webview_window("login")
+        .expect("Cannot get login window");
+    window
+        .eval("window.location.replace('/login')")
+        .expect("Unable to redirect login.");
+    window.hide().expect("Unable to hide window");
+}
+
+#[tauri::command]
 fn get_metadata(path: &str) -> [std::string::String; 2] {
     let ffprobe_path = ffprobe_path();
     println!("Probing file {}", path);
@@ -200,12 +222,17 @@ pub fn run() {
 
             Ok(())
         })
+        .on_page_load(|window, _payload| {
+            window.emit("login", _payload.url().to_string()).unwrap();
+        })
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             get_metadata,
             create_mp3,
             open_in_finder,
-            get_video_path
+            get_video_path,
+            login_github,
+            hide_login_window
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

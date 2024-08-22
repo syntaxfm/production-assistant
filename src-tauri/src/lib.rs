@@ -180,7 +180,7 @@ fn open_in_finder(path: &str) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        // .plugin(tauri_plugin_http::init())
+        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_decorum::init()) // initialize the decorum plugin
         .setup(|app| {
             // Create a custom titlebar for main window
@@ -206,7 +206,7 @@ pub fn run() {
 
             Ok(())
         })
-        // .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             greet,
             get_metadata,

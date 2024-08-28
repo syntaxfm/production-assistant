@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { iso_to_plain_date } from '$/lib/utils/date';
+	import { github_data } from '$state/Auth.svelte';
 	import { app_data } from '$state/Project.svelte';
 	import { invoke } from '@tauri-apps/api/core';
+	import Avatar from '$lib/auth/Avatar.svelte';
 	app_data.sync();
 </script>
 
@@ -9,8 +11,12 @@
 	<div class="settings flex">
 		<h1>My Projects</h1>
 		<div class="flex settings-buttons">
-			<button class="small ghost" onclick={() => invoke('login_youtube')}>Login Youtube</button>
-			<button class="small ghost" onclick={() => invoke('login_github')}>Login Github</button>
+			<!-- <button class="small ghost" onclick={() => invoke('login_youtube')}>Login Youtube</button> -->
+			{#if !github_data?.user?.login}
+				<button class="small ghost" onclick={() => invoke('login_github')}>Login Github</button>
+			{:else}
+				<Avatar />
+			{/if}
 			<label class="button small ghost"
 				>Import Data
 				<input

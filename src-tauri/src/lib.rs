@@ -1,13 +1,50 @@
 use chrono::Local;
 use colored::*;
-use ffmpeg_sidecar::{command::FfmpegCommand, event::FfmpegEvent, ffprobe::ffprobe_path};
+use ffmpeg_sidecar::{command::FfmpegCommand, event::FfmpegEvent};
+use log::{error, info};
 use regex::Regex;
 use reqwest::Client;
 use serde::Serialize;
 use serde_json::json;
+use serde_json::Value;
+use std::path::Path;
 use std::{fs::File, io::Read, path::PathBuf, process::Command, time::Duration};
 use tauri::{Emitter, Manager};
 use tauri_plugin_decorum::WebviewWindowExt;
+use tauri_plugin_log::{Target, TargetKind};
+use which::which;
+
+fn ffprobe_path() -> Option<PathBuf> {
+    // First, check if it's in the PATH
+    if let Ok(path) = which("ffprobe") {
+        return Some(path);
+    }
+
+    // Then, check common installation directories
+    let common_paths = [
+        "/usr/bin/ffprobe",
+        "/usr/local/bin/ffprobe",
+        "/opt/homebrew/bin/ffprobe",
+        "C:\\Program Files\\ffmpeg\\bin\\ffprobe.exe",
+    ];
+
+    for path in common_paths.iter() {
+        let path = PathBuf::from(path);
+        if path.exists() {
+            return Some(path);
+        }
+    }
+
+    // Finally, check for an environment variable
+    if let Ok(path) = std::env::var("FFPROBE_PATH") {
+        let path = PathBuf::from(path);
+        if path.exists() {
+            return Some(path);
+        }
+    }
+
+    None
+}
 
 #[tauri::command]
 fn get_video_path(path: String) -> String {
@@ -48,12 +85,33 @@ fn hide_login_window(app_handle: tauri::AppHandle) {
     window.hide().expect("Unable to hide window");
 }
 
+#[derive(Debug)]
+pub enum MetadataError {
+    CommandFailed(std::io::Error),
+    OutputParseError(serde_json::Error),
+    InvalidUtf8(std::string::FromUtf8Error),
+}
+
+#[derive(Debug, Serialize)]
+struct MetadataResult {
+    stdout: String,
+    stderr: String,
+}
+
 #[tauri::command]
-fn get_metadata(path: &str) -> [std::string::String; 2] {
-    let ffprobe_path = ffprobe_path();
-    println!("Probing file {}", path);
-    println!("ffprobe path {}", ffprobe_path.display());
-    let output = Command::new(&ffprobe_path)
+fn get_metadata(path: String) -> Result<MetadataResult, String> {
+    let ffprobe_path = ffprobe_path().ok_or("ffprobe not found")?;
+    info!("Probing file: {}", path);
+    info!("ffprobe path: {:?}", ffprobe_path);
+
+    let input_path = Path::new(&ffprobe_path);
+    if input_path.exists() {
+        info!("Input file exists");
+    } else {
+        error!("Input file does not exist");
+    }
+
+    let output = Command::new(ffprobe_path)
         .args([
             "-v",
             "quiet",
@@ -64,20 +122,33 @@ fn get_metadata(path: &str) -> [std::string::String; 2] {
             "-show_streams",
             "-loglevel",
             "error",
-            path,
+            &path,
         ])
         .output()
-        .expect("Error probing");
+        .map_err(|e| {
+            let error_msg = format!("Failed to execute ffprobe: {}", e);
+            error!("{}", error_msg);
+            error_msg
+        })?;
 
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-    println!("stdout: {}", stdout);
-    println!("stderr: {}", stderr);
-    return [stdout, stderr];
+    let stdout = String::from_utf8(output.stdout).map_err(|e| {
+        let error_msg = format!("Failed to parse ffprobe output as UTF-8: {}", e);
+        error!("{}", error_msg);
+        error_msg
+    })?;
+
+    let stderr = String::from_utf8(output.stderr).map_err(|e| {
+        let error_msg = format!("Failed to parse ffprobe error output as UTF-8: {}", e);
+        error!("{}", error_msg);
+        error_msg
+    })?;
+
+    Ok(MetadataResult { stdout, stderr })
 }
 
 fn get_duration(path: &str) -> Result<Duration, String> {
-    let output = std::process::Command::new("ffprobe")
+    let ffprobe_path = ffprobe_path().ok_or("ffprobe not found")?;
+    let output = std::process::Command::new(ffprobe_path)
         .args(&[
             "-v",
             "error",
@@ -314,7 +385,29 @@ async fn upload_to_youtube(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default();
+
+    #[cfg(debug_assertions)]
+    {
+        let devtools = tauri_plugin_devtools::init();
+        builder = builder.plugin(devtools);
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        use tauri_plugin_log::{Builder, Target, TargetKind};
+        builder = builder.plugin(
+            tauri_plugin_log::Builder::new()
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::LogDir {
+                        file_name: Some("logs".to_string()),
+                    },
+                ))
+                .build(),
+        )
+    }
+
+    builder
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_decorum::init()) // initialize the decorum plugin
         .setup(|app| {
@@ -336,6 +429,15 @@ pub fn run() {
             window
                 .set_size(tauri::Size::Physical(tauri::PhysicalSize::new(
                     width, height,
+                )))
+                .unwrap();
+            // Center the window
+            let screen_position = monitor.position();
+            let x = screen_position.x + ((size.width - width) / 2) as i32;
+            let y = screen_position.y + ((size.height - height) / 2) as i32;
+            window
+                .set_position(tauri::Position::Physical(tauri::PhysicalPosition::new(
+                    x, y,
                 )))
                 .unwrap();
 

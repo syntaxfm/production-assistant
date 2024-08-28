@@ -55,32 +55,44 @@
 	}
 
 	const get_metadata = async (path: string) => {
-		error_message = '';
-		if (app_data.project) {
-			app_data.set_project_status(data.id, 'PROCESSING');
-			const [result, error] = (await invoke('get_metadata', {
-				path
-			})) as string[];
-			let ffprobe_result: FfprobeResult = {};
-			try {
-				ffprobe_result = JSON.parse(result) as FfprobeResult;
-			} catch {}
-			if (error) {
-				error_message = error;
-			} else if (!ffprobe_result.chapters || ffprobe_result.chapters.length === 0) {
-				error_message =
-					'No chapters found in video. Make sure the video was exported with chapter metadata.';
-			} else {
-				const notes = ffprobe_result.chapters
-					.map((chapter) => {
-						const timestamp = convert_seconds(chapter.start / 1000);
-						return `* **[${timestamp}](#t=${timestamp})** ${chapter.tags.title}`;
-					})
-					.join('\n');
+		try {
+			error_message = '';
+			if (app_data.project) {
+				app_data.set_project_status(data.id, 'PROCESSING');
+				try {
+					const result = await invoke('get_metadata', { path });
 
-				await app_data.save({ id: data.id, notes, chapters: ffprobe_result.chapters }, true);
+					if (result.stderr) {
+						console.error('FFprobe errors:', result.stderr);
+						app_data.set_project_status(data.id, 'ERROR');
+						error_message = result.stderr;
+					}
+					// Process the metadata as needed
+					let ffprobe_result: FfprobeResult = {};
+					ffprobe_result = JSON.parse(result.stdout) as FfprobeResult;
+					if (!ffprobe_result.chapters || ffprobe_result.chapters.length === 0) {
+						error_message =
+							'No chapters found in video. Make sure the video was exported with chapter metadata.';
+					} else {
+						const notes = ffprobe_result.chapters
+							.map((chapter) => {
+								const timestamp = convert_seconds(chapter.start / 1000);
+								return `* **[${timestamp}](#t=${timestamp})** ${chapter.tags.title}`;
+							})
+							.join('\n');
+
+						await app_data.save({ id: data.id, notes, chapters: ffprobe_result.chapters }, true);
+					}
+					app_data.set_project_status(data.id, 'COMPLETED');
+				} catch (error) {
+					console.error('Error getting metadata:', error);
+					app_data.set_project_status(data.id, 'ERROR');
+					error_message = error.message;
+				}
 			}
-			app_data.set_project_status(data.id, 'COMPLETED');
+		} catch (error) {
+			console.error('Error loading video:', error);
+			app_data.set_project_status(data.id, 'ERROR');
 		}
 	};
 
@@ -100,11 +112,17 @@
 	});
 
 	async function make_mp3(path) {
-		const res = await invoke('create_mp3', { path });
-		if (res.success) {
-			app_data.save({ id: data.id, mp3_path: res.output_path }, true);
-		} else {
-			error_message = res.message;
+		try {
+			const res = await invoke('create_mp3', { path });
+			if (res.success) {
+				app_data.save({ id: data.id, mp3_path: res.output_path }, true);
+			} else {
+				error_message = res.message;
+			}
+		} catch (error) {
+			console.error('Error loading video:', error);
+			app_data.set_project_status(data.id, 'ERROR');
+			error_message = error.message;
 		}
 	}
 
@@ -127,7 +145,15 @@
 	{#if app_data.project.status === 'PROCESSING'}
 		<div class="overlay" transition:fade>Loading...</div>
 	{:else if app_data.project.status === 'HOVERING'}
-		<div class="overlay" transition:fade>Drop File Here</div>
+		<div class="overlay" transition:fade>
+			<h2>Drop File Here</h2>
+			<button
+				onclick={() => {
+					app_data.set_project_status(data.id, 'ERROR');
+					error_message = 'File Drop Cancelled';
+				}}>Cancel</button
+			>
+		</div>
 	{/if}
 
 	{#if !app_data.project.path}
@@ -180,7 +206,7 @@
 						>
 					{:else}
 						<button onclick={() => make_mp3(app_data?.project?.path)} class="small ghost"
-							>Re-Generate MP3</button
+							>Regenerate MP3</button
 						>
 					{/if}
 				</div>

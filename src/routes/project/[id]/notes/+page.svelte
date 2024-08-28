@@ -1,6 +1,4 @@
 <script lang="ts">
-	import InkMde from 'ink-mde/svelte';
-
 	import marked from '$lib/utils/markdown';
 	import {
 		add_multiple_guests,
@@ -9,13 +7,7 @@
 		update_frontmatter_date
 	} from '$state/Project.svelte';
 	import { ink, defineOptions, type AwaitableInstance } from 'ink-mde';
-	import {
-		convert_seconds,
-		format_number,
-		get_date_string_from_frontmatter,
-		get_filename_from_path,
-		get_yaml_value
-	} from '$/lib/utils/text';
+	import { get_date_string_from_frontmatter, get_yaml_value } from '$/lib/utils/text';
 	import { validate_urls, type UrlValidation } from '$/lib/utils/markdown/validate';
 
 	let { data } = $props();
@@ -57,8 +49,8 @@
 		hooks: {
 			afterUpdate(doc) {
 				frontmatter = doc;
-				const new_title = get_yaml_value(frontmatter, 'title');
-				const new_number = get_yaml_value(frontmatter, 'number');
+				const new_title = frontmatter ? get_yaml_value(frontmatter, 'title') : '';
+				const new_number = frontmatter ? get_yaml_value(frontmatter, 'number') : '';
 				const new_name = `${new_number} - ${new_title}`;
 				app_data.save({ id: data.id, frontmatter, name: new_name }, true);
 			}

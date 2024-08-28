@@ -6,6 +6,7 @@
 	import './style.css';
 	import { invoke } from '@tauri-apps/api/core';
 	import { login_github, login_youtube, set_github_user_if_token } from '$/lib/auth/login';
+	import { github_data } from '$state/Auth.svelte';
 	import '$lib/icons/style.css';
 	let { children } = $props();
 	app_data.sync();
@@ -62,16 +63,8 @@
 			}
 
 			const data = await response.json();
-			console.log('data', data);
-
 			if (data.items && data.items.length > 0) {
 				const channelData = data.items[0];
-				console.log('channelData', channelData);
-				console.log('Channel Title:', channelData.snippet.title);
-				console.log('Channel Description:', channelData.snippet.description);
-				console.log('Subscriber Count:', channelData.statistics.subscriberCount);
-				console.log('View Count:', channelData.statistics.viewCount);
-				console.log('Video Count:', channelData.statistics.videoCount);
 				return channelData;
 			} else {
 				console.log('No channel data found');

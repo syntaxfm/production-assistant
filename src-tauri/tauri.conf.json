@@ -8,8 +8,13 @@
                 ]
             },
             "capabilities": [],
-            "csp": "default-src 'self' asset: http://asset.localhost",
-            "devCsp": "default-src 'self' asset: http://asset.localhost"
+            "csp": "default-src 'self' asset: http://asset.localhost; style-src 'self' asset: http://asset.localhost 'unsafe-inline'; script-src 'self' asset: http://asset.localhost 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:; connect-src 'self' asset: http://asset.localhost ipc: tauri:",
+            "dangerousDisableAssetCspModification": [
+                "style-src",
+                "script-src",
+                "connect-src"
+            ],
+            "devCsp": "default-src 'self' asset: http://asset.localhost; style-src 'self' asset: http://asset.localhost 'unsafe-inline'; script-src 'self' asset: http://asset.localhost 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:; connect-src 'self' asset: http://asset.localhost ipc: tauri:"
         },
         "windows": [
             {
@@ -46,6 +51,23 @@
             "icons/icon.icns",
             "icons/icon.ico"
         ],
+        "macOS": {
+            "dmg": {
+                "appPosition": {
+                    "x": 200,
+                    "y": 200
+                },
+                "applicationFolderPosition": {
+                    "x": 625,
+                    "y": 200
+                },
+                "background": "./images/257.png",
+                "windowSize": {
+                    "height": 440,
+                    "width": 800
+                }
+            }
+        },
         "targets": "all"
     },
     "identifier": "com.syntax-production-assistant.app",
@@ -56,6 +78,6 @@
             ]
         }
     },
-    "productName": "syntax-production-assistant",
-    "version": "0.1.0"
+    "productName": "Syntax Production Assistant",
+    "version": "0.1.2"
 }

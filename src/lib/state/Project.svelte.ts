@@ -9,7 +9,13 @@ import {
 	modify_yaml
 } from '../utils/text';
 
-export type ProjectStatus = 'INITIAL' | 'HOVERING' | 'DROPPED' | 'PROCESSING' | 'COMPLETED';
+export type ProjectStatus =
+	| 'INITIAL'
+	| 'HOVERING'
+	| 'DROPPED'
+	| 'PROCESSING'
+	| 'COMPLETED'
+	| 'ERROR';
 export interface Project {
 	id: string;
 	notes?: string;

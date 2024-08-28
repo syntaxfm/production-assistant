@@ -222,7 +222,7 @@
 				<span>{app_data.project?.updatedAt}</span>
 			</div>
 
-			<div>
+			<!-- <div>
 				<span>Youtube:</span>
 				<div>
 					{#if app_data.project?.youtube_url}
@@ -245,7 +245,7 @@
 						<a href="/project/{data.id}/publish" class="button ghost small">Start Upload</a>
 					{/if}
 				</div>
-			</div>
+			</div> -->
 		</div>
 	{/if}
 {/if}

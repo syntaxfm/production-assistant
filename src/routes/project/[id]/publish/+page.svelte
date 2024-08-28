@@ -2,6 +2,7 @@
 	import { create_show_pr } from '$/lib/utils/github/api';
 	import { get_number_and_title_from_name, modify_yaml } from '$/lib/utils/text';
 	import { uploadVideoToYouTube } from '$/lib/utils/youtube.js';
+	import { github_data } from '$state/Auth.svelte';
 	import { app_data } from '$state/Project.svelte';
 	import { listen } from '@tauri-apps/api/event';
 
@@ -86,15 +87,20 @@ Randy: [X](https://twitter.com/randyrektor) [Instagram](https://www.instagram.co
 
 <h2>Github</h2>
 <!-- <small>TODO: after create, url only shows on refresh...</small> -->
-{#if pr_loading}
-	<progress></progress>
-{:else if !project?.pr_url}
-	<button onclick={create_github_pr}>Create PR</button>
-{:else if project?.pr_url}
-	<a
-		class="button"
-		style="width: auto; display: inline-block"
-		href={project?.pr_url}
-		target="_blank">Open on Github</a
-	>
+
+{#if github_data?.user}
+	{#if pr_loading}
+		<progress></progress>
+	{:else if !project?.pr_url}
+		<button onclick={create_github_pr}>Create PR</button>
+	{:else if project?.pr_url}
+		<a
+			class="button"
+			style="width: auto; display: inline-block"
+			href={project?.pr_url}
+			target="_blank">Open on Github</a
+		>
+	{/if}
+{:else}
+	<a href="/" class="button">Login with Github to create PR</a>
 {/if}

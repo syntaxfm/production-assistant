@@ -64,6 +64,7 @@
 			font-style: italic;
 		}
 		&::backdrop {
+			backdrop-filter: blur(3px);
 			-webkit-backdrop-filter: blur(3px);
 		}
 	}

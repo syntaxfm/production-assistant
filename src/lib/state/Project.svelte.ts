@@ -242,6 +242,11 @@ export function createData() {
 		}
 	}
 
+	async function delete_project(id: string) {
+		await localDB.projects.delete(id);
+		await sync();
+	}
+
 	return {
 		get projects() {
 			return projects;
@@ -254,6 +259,7 @@ export function createData() {
 		save,
 		add,
 		load,
+		delete_project,
 		export_to_json,
 		import_from_json
 	};

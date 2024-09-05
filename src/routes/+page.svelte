@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { iso_to_plain_date } from '$/lib/utils/date';
 	import { github_data } from '$state/Auth.svelte';
 	import { app_data } from '$state/Project.svelte';
 	import { invoke } from '@tauri-apps/api/core';
 	import Avatar from '$lib/auth/Avatar.svelte';
+	import ProjectButton from '$/lib/components/ProjectButton.svelte';
 	app_data.sync();
 </script>
 
@@ -32,48 +32,12 @@
 	<div class="grid">
 		<button class="project-button" onclick={app_data.add}>+ New Project</button>
 		{#each app_data.projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) as project}
-			<a class="project-button" href="/project/{project.id}">
-				<h2>
-					{project.name}
-				</h2>
-				<p>
-					Created: {iso_to_plain_date(project.createdAt)}
-				</p>
-			</a>
+			<ProjectButton {project} />
 		{/each}
 	</div>
 </div>
 
 <style>
-	.project-button {
-		aspect-ratio: 16/9;
-		border-radius: 4px;
-		border: solid 1px var(--tint-or-shade);
-		background-color: transparent;
-		display: flex;
-		flex-direction: column;
-		text-decoration: none;
-		justify-content: space-between;
-		padding: 20px;
-		color: var(--fg);
-		h2 {
-			margin: 0;
-			font-size: var(--fs-base);
-		}
-		p {
-			margin: 0;
-			font-size: var(--fs-xxs);
-			opacity: 0.7;
-		}
-		&:hover {
-			background: var(--tint-or-shade);
-		}
-	}
-
-	button.project-button {
-		justify-content: center;
-		align-items: center;
-	}
 	h1 {
 		margin-top: 6rem;
 		margin-bottom: 2rem;

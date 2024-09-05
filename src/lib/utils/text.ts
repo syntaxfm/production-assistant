@@ -10,7 +10,7 @@ export const format_number = (value: number) => value.toString().padStart(2, '0'
 
 export const convert_seconds = (total_seconds: number) => {
 	const seconds = Math.floor(total_seconds % 60);
-	const minutes = Math.floor(total_seconds / 60);
+	const minutes = Math.floor((total_seconds / 60) % 60);
 	const hours = Math.floor(total_seconds / 3600);
 
 	const parts = [minutes, seconds];

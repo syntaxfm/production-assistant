@@ -70,7 +70,6 @@
 					// Process the metadata as needed
 					let ffprobe_result: FfprobeResult = {};
 					ffprobe_result = JSON.parse(result.stdout) as FfprobeResult;
-					console.log(ffprobe_result);
 					if (!ffprobe_result.chapters || ffprobe_result.chapters.length === 0) {
 						error_message =
 							'No chapters found in video. Make sure the video was exported with chapter metadata.';

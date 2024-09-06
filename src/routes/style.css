@@ -356,3 +356,33 @@ h1 {
 hr {
 	color: var(--tint-or-shade);
 }
+
+.project-button {
+	aspect-ratio: 16/9;
+	border-radius: 4px;
+	border: solid 1px var(--tint-or-shade);
+	background-color: transparent;
+	display: flex;
+	flex-direction: column;
+	text-decoration: none;
+	justify-content: space-between;
+	padding: 20px;
+	color: var(--fg);
+	h2 {
+		margin: 0;
+		font-size: var(--fs-base);
+	}
+	p {
+		margin: 0;
+		font-size: var(--fs-xxs);
+		opacity: 0.7;
+	}
+	&:hover {
+		background: var(--tint-or-shade);
+	}
+}
+
+button.project-button {
+	justify-content: center;
+	align-items: center;
+}

@@ -60,7 +60,7 @@
 			if (app_data.project) {
 				app_data.set_project_status(data.id, 'PROCESSING');
 				try {
-					const result = await invoke('get_metadata', { path });
+					const result: { stderr: string; stdout: string } = await invoke('get_metadata', { path });
 
 					if (result.stderr) {
 						console.error('FFprobe errors:', result.stderr);
@@ -76,7 +76,7 @@
 					} else {
 						const notes = ffprobe_result.chapters
 							.map((chapter) => {
-								const timestamp = convert_seconds(chapter.start / 1000);
+								const timestamp = convert_seconds(Number(chapter.start_time));
 								return `* **[${timestamp}](#t=${timestamp})** ${chapter.tags.title}`;
 							})
 							.join('\n');

@@ -9,11 +9,16 @@ export function get_filename_from_path(path: string) {
 export const format_number = (value: number) => value.toString().padStart(2, '0');
 
 export const convert_seconds = (total_seconds: number) => {
-	const minutes = format_number(Math.floor(total_seconds / 60));
-	const seconds = format_number(Math.floor(total_seconds % 60));
-	// TODO: calculate hours
-	const result = `${minutes}:${seconds}`;
-	return result;
+	const seconds = Math.floor(total_seconds % 60);
+	const minutes = Math.floor((total_seconds / 60) % 60);
+	const hours = Math.floor(total_seconds / 3600);
+
+	const parts = [minutes, seconds];
+	if (hours > 0) {
+		parts.unshift(hours);
+	}
+
+	return parts.map(format_number).join(':');
 };
 
 export function modify_yaml(yamlString: string, key: string, newValue: string) {

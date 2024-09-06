@@ -197,14 +197,19 @@ fn create_mp3(path: &str, app_handle: tauri::AppHandle) -> Result<Mp3Result, Str
         .parent()
         .unwrap_or_else(|| std::path::Path::new("."));
 
-    let timestamp = Local::now().format("%Y%m%d_%H%M%S").to_string();
     let stream_id = input_path
         .file_stem()
         .unwrap()
         .to_str()
         .unwrap()
         .to_string();
-    let output_file = parent_dir.join(format!("{}_{}.mp3", stream_id, timestamp));
+
+    let mut episode_id = Local::now().format("%Y%m%d_%H%M%S").to_string();
+    let regex = Regex::new(r"^(?<id>\d+)").unwrap();
+    if let Some(caps) = regex.captures(stream_id.as_str()) {
+        episode_id = (&caps["id"]).to_string();
+    };
+    let output_file = parent_dir.join(format!("Syntax_-_{}.mp3", episode_id));
     println!("Starting to write {}", output_file.to_str().unwrap());
     let total_duration = get_duration(path)?;
     let mut last_percent = 0;

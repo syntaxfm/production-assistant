@@ -8,13 +8,14 @@
                 ]
             },
             "capabilities": [],
-            "csp": "default-src 'self' asset: http://asset.localhost; style-src 'self' asset: http://asset.localhost 'unsafe-inline'; script-src 'self' asset: http://asset.localhost 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:; connect-src 'self' asset: http://asset.localhost ipc: tauri:",
+            "csp": "default-src 'self' asset: http://asset.localhost; style-src 'self' asset: http://asset.localhost 'unsafe-inline'; script-src 'self' asset: http://asset.localhost 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:; connect-src 'self' asset: http://asset.localhost ipc: tauri: https://api.github.com",
             "dangerousDisableAssetCspModification": [
                 "style-src",
                 "script-src",
-                "connect-src"
+                "connect-src",
+                "img-src"
             ],
-            "devCsp": "default-src 'self' asset: http://asset.localhost; style-src 'self' asset: http://asset.localhost 'unsafe-inline'; script-src 'self' asset: http://asset.localhost 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:; connect-src 'self' asset: http://asset.localhost ipc: tauri:"
+            "devCsp": "default-src 'self' asset: http://asset.localhost; style-src 'self' asset: http://asset.localhost 'unsafe-inline'; script-src 'self' asset: http://asset.localhost 'unsafe-inline'; img-src 'self' asset: http://asset.localhost data:; connect-src 'self' asset: http://asset.localhost ipc: tauri: https://api.github.com"
         },
         "windows": [
             {
@@ -66,7 +67,8 @@
                     "height": 440,
                     "width": 800
                 }
-            }
+            },
+            "signingIdentity": "Apple Development: Scott Tolinski (83JAQRUPT7)"
         },
         "targets": "all"
     },
@@ -78,6 +80,6 @@
             ]
         }
     },
-    "productName": "Syntax Production Assistant",
-    "version": "1.0.0"
+    "productName": "Syntax PA",
+    "version": "1.0.1"
 }

@@ -28,7 +28,7 @@
 		doc: notes,
 		interface: {
 			toolbar: true,
-			appearance: 'dark',
+			appearance: 'auto',
 			attribution: false
 		},
 		hooks: {
@@ -43,7 +43,7 @@
 		doc: frontmatter,
 		interface: {
 			toolbar: false,
-			appearance: 'dark',
+			appearance: 'auto',
 			attribution: false
 		},
 		hooks: {

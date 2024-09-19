@@ -19,6 +19,8 @@ export type ProjectStatus =
 export interface Project {
 	id: string;
 	notes?: string;
+	sick_picks?: string;
+	socials?: string;
 	frontmatter?: string;
 	name: string;
 	createdAt: string;
@@ -31,6 +33,8 @@ export interface Project {
 	ai_titles?: string[];
 	pr_url?: string;
 }
+
+export type ProjectMarkdownFields = Pick<Project, 'notes' | 'sick_picks' | 'socials'>;
 
 export function update_frontmatter_date(e) {
 	if (app_data.project) {

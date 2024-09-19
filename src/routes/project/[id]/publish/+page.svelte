@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { create_show_pr } from '$/lib/utils/github/api';
+	import { get_combined_notes } from '$/lib/utils/project';
 	import { get_number_and_title_from_name, modify_yaml } from '$/lib/utils/text';
 	import { uploadVideoToYouTube } from '$/lib/utils/youtube.js';
 	import { github_data } from '$state/Auth.svelte';
@@ -25,7 +26,7 @@
 			// TODO: have a field for episode number
 			// TODO: have a field for episode publish date
 			// TODO: update mp3 url
-			// TODO update youtueb url
+			// TODO update youtube url
 			const episode_number = Date.now();
 			const pr = await create_show_pr(
 				number,
@@ -34,17 +35,7 @@
 ${project.frontmatter}
 ---
 
-${project.notes}
-
-### Hit us up on Socials!
-
-Syntax: [X](https://twitter.com/syntaxfm) [Instagram](https://www.instagram.com/syntax_fm/) [Tiktok](https://www.tiktok.com/@syntaxfm) [LinkedIn](https://www.linkedin.com/company/96077407/admin/feed/posts/) [Threads](https://www.threads.net/@syntax_fm)
-
-Wes: [X](https://twitter.com/wesbos) [Instagram](https://www.instagram.com/wesbos/) [Tiktok](https://www.tiktok.com/@wesbos) [LinkedIn](https://www.linkedin.com/in/wesbos/) [Threads](https://www.threads.net/@wesbos)
-
-Scott: [X](https://twitter.com/stolinski) [Instagram](https://www.instagram.com/stolinski/) [Tiktok](https://www.tiktok.com/@stolinski) [LinkedIn](https://www.linkedin.com/in/stolinski/) [Threads](https://www.threads.net/@stolinski)
-
-Randy: [X](https://twitter.com/randyrektor) [Instagram](https://www.instagram.com/randyrektor/) [YouTube](https://www.youtube.com/@randyrektor) [Threads](https://www.threads.net/@randyrektor)`
+${get_combined_notes(project)}`
 			);
 
 			await app_data.save({ id: data.id, pr_url: pr.html_url }, true);

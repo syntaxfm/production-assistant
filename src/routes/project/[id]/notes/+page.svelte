@@ -33,7 +33,7 @@
 		doc: frontmatter,
 		interface: {
 			toolbar: false,
-			appearance: 'dark',
+			appearance: 'auto',
 			attribution: false
 		},
 		hooks: {

@@ -31,14 +31,26 @@ const create_branch = async (name: string) => {
 				ref: `refs/heads/${name}`
 			})
 		});
-		const branch = (await response.json()) as GithubBranch;
-		return branch;
+		if (response.ok) {
+			const branch = (await response.json()) as GithubBranch;
+			return branch;
+		}
+		throw new Error(
+			'Failed to create branch. A branch with that name already exists! Make sure this episode number is unique.'
+		);
 	}
 	return null;
 };
 
+// See the The "Unicode Problem": https://developer.mozilla.org/en-US/docs/Glossary/Base64
+function bytesToBase64(bytes: Uint8Array) {
+	const binString = Array.from(bytes, (byte: number) => String.fromCodePoint(byte)).join('');
+	return btoa(binString);
+}
+
 const commit_show_notes = async (branch_name: string, file_name: string, notes: string) => {
 	const token = get_github_token();
+
 	const response = await fetch(
 		`https://api.github.com/repos/syntaxfm/website/contents/shows/${file_name}`,
 		{
@@ -49,7 +61,7 @@ const commit_show_notes = async (branch_name: string, file_name: string, notes: 
 			},
 			body: JSON.stringify({
 				message: `Create ${file_name}`,
-				content: btoa(notes),
+				content: bytesToBase64(new TextEncoder().encode(notes)),
 				branch: branch_name
 			})
 		}

@@ -8,6 +8,7 @@
 	import { listen } from '@tauri-apps/api/event';
 
 	let { data } = $props();
+	let error = $state('');
 
 	let pr_loading = $state(false);
 	let project = $derived(app_data.project);
@@ -20,6 +21,7 @@
 	});
 
 	const create_github_pr = async () => {
+		error = '';
 		if (project && project.notes) {
 			pr_loading = true;
 			const { title, number } = get_number_and_title_from_name(project.name);
@@ -27,18 +29,21 @@
 			// TODO: have a field for episode publish date
 			// TODO: update mp3 url
 			// TODO update youtube url
-			const episode_number = Date.now();
-			const pr = await create_show_pr(
-				number,
-				title,
-				`---
+			try {
+				const pr = await create_show_pr(
+					number,
+					title,
+					`---
 ${project.frontmatter}
 ---
-
+	
 ${get_combined_notes(project)}`
-			);
+				);
 
-			await app_data.save({ id: data.id, pr_url: pr.html_url }, true);
+				await app_data.save({ id: data.id, pr_url: pr.html_url }, true);
+			} catch (e) {
+				error = (e as Error).message;
+			}
 			pr_loading = false;
 		}
 	};
@@ -91,6 +96,9 @@ ${get_combined_notes(project)}`
 			href={project?.pr_url}
 			target="_blank">Open on Github</a
 		>
+	{/if}
+	{#if error}
+		<p class="error">{error}</p>
 	{/if}
 {:else}
 	<a href="/" class="button">Login with Github to create PR</a>

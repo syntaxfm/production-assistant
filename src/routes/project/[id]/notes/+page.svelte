@@ -29,7 +29,6 @@
 	// Syntax highlighting can be customized with CSS variables
 	// https://github.com/davidmyersdev/ink-mde/tree/main?tab=readme-ov-file#syntax-highlighting
 
-
 	const frontmatter_options = defineOptions({
 		doc: frontmatter,
 		interface: {

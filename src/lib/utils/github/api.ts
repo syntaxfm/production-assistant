@@ -79,7 +79,7 @@ const create_pr = async (branch_name: string, file_name: string) => {
 export const create_show_pr = async (episode_number: number, title: string, notes: string) => {
 	const branch_name = `${episode_number}-show-notes`;
 	await create_branch(branch_name);
-	const clean_title = title.replace(/[^a-zA-Z0-9]/, '');
+	const clean_title = title.replace(/[^a-zA-Z0-9 ]/g, '');
 	const file_name = `${episode_number} - ${clean_title}.md`;
 	await commit_show_notes(branch_name, file_name, notes);
 	return create_pr(branch_name, file_name);

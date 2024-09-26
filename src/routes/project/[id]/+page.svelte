@@ -74,13 +74,16 @@
 						error_message =
 							'No chapters found in video. Make sure the video was exported with chapter metadata.';
 					} else {
-						const notes = ffprobe_result.chapters
+						let notes = ffprobe_result.chapters
 							.map((chapter) => {
 								const timestamp = convert_seconds(Number(chapter.start_time));
 								return `* **[${timestamp}](#t=${timestamp})** ${chapter.tags.title}`;
 							})
 							.join('\n');
 
+						notes = `### Show Notes
+
+${notes}`;
 						await app_data.save({ id: data.id, notes, chapters: ffprobe_result.chapters }, true);
 					}
 					app_data.set_project_status(data.id, 'COMPLETED');

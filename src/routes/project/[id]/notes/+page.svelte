@@ -9,35 +9,26 @@
 	import { ink, defineOptions, type AwaitableInstance } from 'ink-mde';
 	import { get_date_string_from_frontmatter, get_yaml_value } from '$/lib/utils/text';
 	import { validate_urls, type UrlValidation } from '$/lib/utils/markdown/validate';
+	import ProjectMarkdownEditor from '$/lib/components/ProjectMarkdownEditor.svelte';
+	import { get_combined_notes } from '$/lib/utils/project';
 
 	let { data } = $props();
-	let editor: HTMLDivElement | null = $state(null);
 	let frontmatter_editor: HTMLDivElement | null = $state(null);
-	let notes = $state(app_data?.project?.notes || '');
 	let frontmatter = $state(app_data?.project?.frontmatter || '');
-	let ink_instance: AwaitableInstance | null = $state(null);
+	let notes = $derived(app_data?.project?.notes || '');
+	let sick_picks = $derived(app_data?.project?.sick_picks || '');
+	let socials = $derived(app_data?.project?.socials || '');
 	let ink_frontmatter_instance: AwaitableInstance | null = $state(null);
-	let editor_visible = $derived(!!app_data.project?.notes);
+	let notes_visible = $derived(!!app_data.project?.notes);
 	let frontmatter_editor_visible = $derived(!!app_data.project?.frontmatter);
 	let validation_status = $state('');
 	let invalid_urls: UrlValidation[] = $state<UrlValidation[]>([]);
+	let include_sick_picks = $state(!!sick_picks);
+	let include_socials = $state(!!socials);
 
 	// Syntax highlighting can be customized with CSS variables
 	// https://github.com/davidmyersdev/ink-mde/tree/main?tab=readme-ov-file#syntax-highlighting
-	const options = defineOptions({
-		doc: notes,
-		interface: {
-			toolbar: true,
-			appearance: 'auto',
-			attribution: false
-		},
-		hooks: {
-			afterUpdate(doc) {
-				notes = doc;
-				app_data.save({ id: data.id, notes }, true);
-			}
-		}
-	});
+
 
 	const frontmatter_options = defineOptions({
 		doc: frontmatter,
@@ -58,12 +49,6 @@
 	});
 
 	$effect(() => {
-		if (editor) {
-			ink_instance = ink(editor, options);
-		}
-	});
-
-	$effect(() => {
 		if (frontmatter_editor) {
 			ink_frontmatter_instance = ink(frontmatter_editor, frontmatter_options);
 		}
@@ -77,21 +62,17 @@
 	};
 
 	const copyHtml = () => {
-		const html = marked.render(notes);
-		copyToClipboard(html);
+		if (app_data.project) {
+			const html = marked.render(get_combined_notes(app_data.project));
+			copyToClipboard(html);
+		}
 	};
 
 	const copyText = () => {
 		const html = marked.render(notes);
 		const element = document.createElement('div');
 		element.innerHTML = html;
-		const textNodes: string[] = [];
-		element.childNodes.forEach((node) => {
-			textNodes.push(node.textContent || '');
-		});
-
-		const text = textNodes.join('\n');
-		copyToClipboard(text);
+		copyToClipboard(element.textContent || '');
 	};
 
 	const validateLinks = async () => {
@@ -105,12 +86,16 @@
 	};
 </script>
 
-<div class:hidden={!editor_visible} class:visible={editor_visible}>
+<div class:hidden={!notes_visible} class:visible={notes_visible}>
 	<div class="flex notes-actions">
-		<button class="ghost" onclick={copyHtml}>Copy as HTML</button>
-		<button class="ghost" onclick={copyText}>Copy as Text</button>
-		<button class="ghost" onclick={() => copyToClipboard(`---\n${frontmatter}\n---\n\n${notes}`)}
-			>Copy as Markdown</button
+		<button class="ghost" onclick={copyText}>Copy Notes as Text</button>
+		<button class="ghost" onclick={copyHtml}>Copy All as HTML</button>
+		<button
+			class="ghost"
+			onclick={() =>
+				copyToClipboard(`---\n${frontmatter}\n---\n\n${get_combined_notes(app_data.project!)}`)}
+		>
+			Copy All as Markdown</button
 		>
 		<button class="ghost" onclick={validateLinks} disabled={!!validation_status}
 			>Validate Links</button
@@ -167,12 +152,33 @@
 	bind:this={frontmatter_editor}
 ></div>
 
-<div
-	class:hidden={!editor_visible}
-	class:visible={editor_visible}
-	class="editor"
-	bind:this={editor}
-></div>
+<ProjectMarkdownEditor id={data.id} field="notes" />
+
+<div class="optional-editor">
+	<label>
+		Include Sick Picks / Shameless Plugs
+		<input type="checkbox" bind:checked={include_sick_picks} />
+	</label>
+	<ProjectMarkdownEditor
+		id={data.id}
+		field="sick_picks"
+		visible={include_sick_picks}
+		should_clear_if_not_visible
+	/>
+</div>
+
+<div class="optional-editor">
+	<label>
+		Include Socials
+		<input type="checkbox" bind:checked={include_socials} />
+	</label>
+	<ProjectMarkdownEditor
+		id={data.id}
+		field="socials"
+		visible={include_socials}
+		should_clear_if_not_visible
+	/>
+</div>
 
 <style>
 	.editor {
@@ -220,5 +226,9 @@
 		@media (prefers-color-scheme: light) {
 			box-shadow: 1px 1px 3px rgb(0 0 0 / 0.1);
 		}
+	}
+
+	.optional-editor {
+		margin: 2rem 0;
 	}
 </style>

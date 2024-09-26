@@ -22,12 +22,13 @@
 		class="delete-button">×</button
 	>
 </a>
+
 <dialog bind:this={dialog}>
-	<p>Are you sure you want to delete:</p>
+	<h2 class="h5">Are you sure you want to delete:</h2>
 	<p>"{project.name}"</p>
 	<small>This cannot be undone.</small>
 	<div class="buttons">
-		<button onclick={() => dialog?.close()} class="ghost">Cancel</button><button
+		<button onclick={() => dialog?.close()} class="warning">Cancel</button><button
 			onclick={() => {
 				app_data.delete_project(project.id);
 				dialog?.close();
@@ -40,32 +41,26 @@
 	.project-button {
 		position: relative;
 	}
+
 	.delete-button {
 		opacity: 0;
 		position: absolute;
-		top: -10%;
-		right: -5%;
 		transition-duration: 0.5s;
 		pointer-events: none;
+		top: -4%;
+		right: -2%;
 	}
+
 	.project-button:hover .delete-button {
 		opacity: 1;
 		pointer-events: all;
 	}
+
 	.buttons {
 		display: flex;
-		gap: 2rem;
+		gap: 20px;
 		justify-content: flex-end;
-		margin-top: 2rem;
-	}
-	dialog {
-		border-radius: 10px;
-		small {
-			font-style: italic;
-		}
-		&::backdrop {
-			backdrop-filter: blur(3px);
-			-webkit-backdrop-filter: blur(3px);
-		}
+		margin-top: var(--vs-l);
+		align-items: flex-end;
 	}
 </style>

@@ -1,23 +1,24 @@
 <script lang="ts">
+	import './style.css';
 	import 'temporal-polyfill/global';
 	import { listen } from '@tauri-apps/api/event';
 	import { onNavigate } from '$app/navigation';
 	import { app_data } from '$state/Project.svelte';
-	import './style.css';
 	import { invoke } from '@tauri-apps/api/core';
 	import { login_github, login_youtube, set_github_user_if_token } from '$/lib/auth/login';
-	import { github_data } from '$state/Auth.svelte';
 	import '$lib/icons/style.css';
 	let { children } = $props();
+
+	// Makes sure local data is synced with app state
 	app_data.sync();
 
 	$effect(() => {
 		set_github_user_if_token();
 	});
 
+	// Causes a basic page fade on nav
 	onNavigate(async (navigation) => {
 		if (!document.startViewTransition) return;
-
 		return new Promise((oldStateCaptureResolve) => {
 			document.startViewTransition(async () => {
 				oldStateCaptureResolve();
@@ -30,6 +31,7 @@
 		if (event.payload) {
 			const url = new URL(event.payload as string);
 			const code = url.searchParams.get('code');
+			// If the url is a fake syntax one, it's youtube. this is a hack but works
 			if (url.href.includes('syntax.fm/some/not')) {
 				if (code) {
 					invoke('hide_login_window');
@@ -43,84 +45,11 @@
 			}
 		}
 	});
-
-	async function getYoutubeUserData() {
-		const access_token = localStorage.getItem('youtube_token');
-		const apiUrl =
-			'https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails,statistics&mine=true';
-
-		try {
-			const response = await fetch(apiUrl, {
-				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${access_token}`,
-					Accept: 'application/json'
-				}
-			});
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-
-			const data = await response.json();
-			if (data.items && data.items.length > 0) {
-				const channelData = data.items[0];
-				return channelData;
-			} else {
-				console.log('No channel data found');
-				return null;
-			}
-		} catch (error) {
-			console.error('Error fetching YouTube user data:', error);
-			throw error;
-		}
-	}
-
-	async function verifyYT() {
-		const access_token = localStorage.getItem('youtube_token');
-
-		try {
-			const response = await fetch(
-				`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${access_token}`
-			);
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-
-			const data = await response.json();
-			console.log('Token info:', data);
-
-			// Check if the required scopes are present
-			const requiredScopes = [
-				'https://www.googleapis.com/auth/youtube',
-				'https://www.googleapis.com/auth/youtube.force-ssl',
-				'https://www.googleapis.com/auth/youtubepartner'
-			];
-
-			const tokenScopes = data.scope.split(' ');
-			const missingScopes = requiredScopes.filter((scope) => !tokenScopes.includes(scope));
-
-			if (missingScopes.length > 0) {
-				console.warn('Missing scopes:', missingScopes);
-			}
-
-			return data;
-		} catch (error) {
-			console.error('Error verifying token:', error);
-			throw error;
-		}
-	}
 </script>
 
 <main class="layout">
 	{@render children()}
 </main>
-
-<!-- TESTING ZONE -->
-<!-- THESE VALIDATE THE YT LOGIN -->
-<!-- <button onclick={getYoutubeUserData}>GET YT</button>
-<button onclick={verifyYT}>Verify YT</button> -->
 
 <svg xmlns="http://www.w3.org/2000/svg" style="height: 0; width: 0; position: absolute;"
 	><symbol id="icon-wand-sparkle" viewBox="0 0 18 18"

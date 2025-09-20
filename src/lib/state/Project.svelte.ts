@@ -125,8 +125,6 @@ export function createData() {
 	let projects: Project[] = $state([]);
 	let project: Project | undefined = $state();
 
-	$inspect(project);
-
 	async function sync() {
 		projects = (await localDB.projects.toArray()).map(deserializeProject);
 	}

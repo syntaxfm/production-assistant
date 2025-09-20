@@ -6,12 +6,44 @@
 	import ProjectButton from '$/lib/components/ProjectButton.svelte';
 	app_data.sync();
 
+	let isCheckingUpdates = $state(false);
+	let updateMessage = $state('');
+
 	async function checkForUpdates() {
+		isCheckingUpdates = true;
+		updateMessage = '';
 		try {
 			const result = await invoke('check_for_updates');
+			updateMessage = result as string;
+			
+			// If update is available, offer to install
+			if ((result as string).includes('Update available')) {
+				const shouldInstall = confirm(`${result}\n\nWould you like to install the update now?`);
+				if (shouldInstall) {
+					await installUpdate();
+				}
+			} else {
+				alert(result);
+			}
+		} catch (error) {
+			const errorMsg = `Error checking for updates: ${error}`;
+			updateMessage = errorMsg;
+			alert(errorMsg);
+		} finally {
+			isCheckingUpdates = false;
+		}
+	}
+
+	async function installUpdate() {
+		try {
+			updateMessage = 'Installing update...';
+			const result = await invoke('install_update');
+			updateMessage = result as string;
 			alert(result);
 		} catch (error) {
-			alert(`Error checking for updates: ${error}`);
+			const errorMsg = `Error installing update: ${error}`;
+			updateMessage = errorMsg;
+			alert(errorMsg);
 		}
 	}
 </script>
@@ -36,7 +68,9 @@
 				/></label
 			>
 			<button class="small ghost" onclick={app_data.export_to_json}>Export Data</button>
-			<button class="small ghost" onclick={checkForUpdates}>Check for Updates</button>
+			<button class="small ghost" onclick={checkForUpdates} disabled={isCheckingUpdates}>
+				{isCheckingUpdates ? 'Checking...' : 'Check for Updates'}
+			</button>
 		</div>
 	</div>
 	<div class="grid">

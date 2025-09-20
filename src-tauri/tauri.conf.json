@@ -85,7 +85,7 @@
                 "https://github.com/syntaxfm/production-assistant/releases/latest/download/latest.json"
             ],
             "dialog": true,
-            "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhCNjJBOUY1RkQyRkJEQkMKUldRNzVKeHRTUElGR2VEVjU5K0Y5YzhLcGZJeEhjY1VlSGFFeHBucGl0d0F5K2o0ak0wSVJOVVM="
+            "pubkey": ""
         }
     },
     "productName": "Syntax PA",

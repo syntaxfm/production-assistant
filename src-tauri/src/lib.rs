@@ -12,6 +12,7 @@ use std::{fs::File, io::Read, path::PathBuf, process::Command, time::Duration};
 use tauri::{Emitter, Manager};
 use tauri_plugin_decorum::WebviewWindowExt;
 use tauri_plugin_log::{Target, TargetKind};
+use tauri_plugin_updater;
 use which::which;
 
 fn ffprobe_path() -> Option<PathBuf> {
@@ -415,6 +416,7 @@ pub fn run() {
     builder
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_decorum::init()) // initialize the decorum plugin
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             // Create a custom titlebar for main window
             // On macOS it needs hiddenTitle: true and titleBarStyle: overlay

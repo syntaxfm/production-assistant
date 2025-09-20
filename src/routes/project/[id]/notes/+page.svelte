@@ -7,7 +7,11 @@
 		update_frontmatter_date
 	} from '$state/Project.svelte';
 	import { ink, defineOptions, type AwaitableInstance } from 'ink-mde';
-	import { get_date_string_from_frontmatter, get_yaml_value } from '$/lib/utils/text';
+	import {
+		get_date_string_from_frontmatter,
+		get_yaml_value,
+		renderMarkdownToHtmlWithPreservedTimestamps
+	} from '$/lib/utils/text';
 	import { validate_urls, type UrlValidation } from '$/lib/utils/markdown/validate';
 	import ProjectMarkdownEditor from '$/lib/components/ProjectMarkdownEditor.svelte';
 	import { get_combined_notes } from '$/lib/utils/project';
@@ -74,6 +78,16 @@
 		copyToClipboard(element.textContent || '');
 	};
 
+	const copyHtmlWithPreservedTimestamps = () => {
+		if (app_data.project) {
+			const html = renderMarkdownToHtmlWithPreservedTimestamps(
+				get_combined_notes(app_data.project),
+				marked
+			);
+			copyToClipboard(html);
+		}
+	};
+
 	const validateLinks = async () => {
 		validation_status = 'Validating urls...';
 		invalid_urls = [];
@@ -89,6 +103,9 @@
 	<div class="flex notes-actions">
 		<button class="ghost" onclick={copyText}>Copy Notes as Text</button>
 		<button class="ghost" onclick={copyHtml}>Copy All as HTML</button>
+		<button class="ghost" onclick={copyHtmlWithPreservedTimestamps}
+			>Copy All as HTML (preserve timestamps)</button
+		>
 		<button
 			class="ghost"
 			onclick={() =>

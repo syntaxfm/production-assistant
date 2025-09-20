@@ -135,3 +135,34 @@ export function sanitizeDescription(description: string) {
 
 	return sanitized;
 }
+
+export function renderMarkdownToHtmlWithPreservedTimestamps(
+	markdownText: string,
+	markdownRenderer: any
+): string {
+	// Regular expression to match timestamps in various formats:
+	// - HH:MM:SS (like 01:23:45)
+	// - H:MM:SS (like 1:23:45)
+	// - MM:SS (like 23:45)
+	// - H:MM (like 1:23)
+	const timestampRegex = /(?:\b|^)(\d{1,2}:\d{2}(?::\d{2})?)(?=\s|$|[^\d:])/g;
+
+	// Replace timestamps with temporary placeholders
+	const timestampPlaceholders: string[] = [];
+	const textWithPlaceholders = markdownText.replace(timestampRegex, (match) => {
+		const placeholder = `__TIMESTAMP_PLACEHOLDER_${timestampPlaceholders.length}__`;
+		timestampPlaceholders.push(match);
+		return placeholder;
+	});
+
+	// Render the markdown to HTML (timestamps are now placeholders, so won't be processed)
+	let html = markdownRenderer.render(textWithPlaceholders);
+
+	// Replace placeholders back with original timestamps
+	timestampPlaceholders.forEach((timestamp, index) => {
+		const placeholder = `__TIMESTAMP_PLACEHOLDER_${index}__`;
+		html = html.replace(new RegExp(placeholder, 'g'), timestamp);
+	});
+
+	return html;
+}

@@ -145,24 +145,39 @@ export function renderMarkdownToHtmlWithPreservedTimestamps(
 	// - H:MM:SS (like 1:23:45)
 	// - MM:SS (like 23:45)
 	// - H:MM (like 1:23)
-	const timestampRegex = /(?:\b|^)(\d{1,2}:\d{2}(?::\d{2})?)(?=\s|$|[^\d:])/g;
+	const timestampRegex = /(?:\b|^)(\d{1,2}:\d{2}(?::\d{2})?)(?=\s|$|[^\d:])/;
 
-	// Replace timestamps with temporary placeholders
-	const timestampPlaceholders: string[] = [];
-	const textWithPlaceholders = markdownText.replace(timestampRegex, (match) => {
-		const placeholder = `__TIMESTAMP_PLACEHOLDER_${timestampPlaceholders.length}__`;
-		timestampPlaceholders.push(match);
-		return placeholder;
-	});
+	// Split content into lines and process each line separately
+	const lines = markdownText.split('\n');
+	const processedLines: string[] = [];
+	let nonTimestampContent: string[] = [];
 
-	// Render the markdown to HTML (timestamps are now placeholders, so won't be processed)
-	let html = markdownRenderer.render(textWithPlaceholders);
+	const flushNonTimestampContent = () => {
+		if (nonTimestampContent.length > 0) {
+			const markdownBlock = nonTimestampContent.join('\n');
+			const htmlBlock = markdownRenderer.render(markdownBlock).trim();
+			if (htmlBlock) {
+				processedLines.push(htmlBlock);
+			}
+			nonTimestampContent = [];
+		}
+	};
 
-	// Replace placeholders back with original timestamps
-	timestampPlaceholders.forEach((timestamp, index) => {
-		const placeholder = `__TIMESTAMP_PLACEHOLDER_${index}__`;
-		html = html.replace(new RegExp(placeholder, 'g'), timestamp);
-	});
+	for (const line of lines) {
+		// Check if line contains a timestamp
+		if (timestampRegex.test(line)) {
+			// First, process any accumulated non-timestamp content
+			flushNonTimestampContent();
+			// Keep the entire line as plain text (no HTML conversion)
+			processedLines.push(line);
+		} else {
+			// Accumulate non-timestamp content to process as markdown blocks
+			nonTimestampContent.push(line);
+		}
+	}
 
-	return html;
+	// Process any remaining non-timestamp content
+	flushNonTimestampContent();
+
+	return processedLines.join('\n');
 }

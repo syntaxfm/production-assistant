@@ -388,6 +388,28 @@ async fn upload_to_youtube(
     Err("Upload failed".to_string())
 }
 
+#[tauri::command]
+async fn check_for_updates(app: tauri::AppHandle) -> Result<String, String> {
+    match tauri_plugin_updater::UpdaterExt::updater(&app) {
+        Some(updater) => {
+            match updater.check().await {
+                Ok(Some(update)) => {
+                    Ok(format!("Update available: {}", update.version))
+                },
+                Ok(None) => {
+                    Ok("No updates available".to_string())
+                },
+                Err(e) => {
+                    Err(format!("Failed to check for updates: {}", e))
+                }
+            }
+        },
+        None => {
+            Err("Updater not available".to_string())
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
@@ -415,6 +437,7 @@ pub fn run() {
     builder
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_decorum::init()) // initialize the decorum plugin
+        .plugin(tauri_plugin_updater::Builder::new().build()) // initialize the updater plugin
         .setup(|app| {
             // Create a custom titlebar for main window
             // On macOS it needs hiddenTitle: true and titleBarStyle: overlay
@@ -461,6 +484,7 @@ pub fn run() {
             hide_login_window,
             login_youtube,
             upload_to_youtube,
+            check_for_updates,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

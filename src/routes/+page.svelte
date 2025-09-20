@@ -5,6 +5,15 @@
 	import Avatar from '$lib/auth/Avatar.svelte';
 	import ProjectButton from '$/lib/components/ProjectButton.svelte';
 	app_data.sync();
+
+	async function checkForUpdates() {
+		try {
+			const result = await invoke('check_for_updates');
+			alert(result);
+		} catch (error) {
+			alert(`Error checking for updates: ${error}`);
+		}
+	}
 </script>
 
 <div class="content">
@@ -27,6 +36,7 @@
 				/></label
 			>
 			<button class="small ghost" onclick={app_data.export_to_json}>Export Data</button>
+			<button class="small ghost" onclick={checkForUpdates}>Check for Updates</button>
 		</div>
 	</div>
 	<div class="grid">

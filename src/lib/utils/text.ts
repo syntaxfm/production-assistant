@@ -135,3 +135,49 @@ export function sanitizeDescription(description: string) {
 
 	return sanitized;
 }
+
+export function renderMarkdownToHtmlWithPreservedTimestamps(
+	markdownText: string,
+	markdownRenderer: any
+): string {
+	// Regular expression to match timestamps in various formats:
+	// - HH:MM:SS (like 01:23:45)
+	// - H:MM:SS (like 1:23:45)
+	// - MM:SS (like 23:45)
+	// - H:MM (like 1:23)
+	const timestampRegex = /(?:\b|^)(\d{1,2}:\d{2}(?::\d{2})?)(?=\s|$|[^\d:])/;
+
+	// Split content into lines and process each line separately
+	const lines = markdownText.split('\n');
+	const processedLines: string[] = [];
+	let nonTimestampContent: string[] = [];
+
+	const flushNonTimestampContent = () => {
+		if (nonTimestampContent.length > 0) {
+			const markdownBlock = nonTimestampContent.join('\n');
+			const htmlBlock = markdownRenderer.render(markdownBlock).trim();
+			if (htmlBlock) {
+				processedLines.push(htmlBlock);
+			}
+			nonTimestampContent = [];
+		}
+	};
+
+	for (const line of lines) {
+		// Check if line contains a timestamp
+		if (timestampRegex.test(line)) {
+			// First, process any accumulated non-timestamp content
+			flushNonTimestampContent();
+			// Keep the entire line as plain text (no HTML conversion)
+			processedLines.push(line);
+		} else {
+			// Accumulate non-timestamp content to process as markdown blocks
+			nonTimestampContent.push(line);
+		}
+	}
+
+	// Process any remaining non-timestamp content
+	flushNonTimestampContent();
+
+	return processedLines.join('\n');
+}

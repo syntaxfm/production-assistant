@@ -53,6 +53,10 @@ export interface GithubUser {
 	plan: Plan;
 }
 
+export interface GithubPullRequest {
+	html_url: string;
+}
+
 export interface Plan {
 	name: string;
 	space: number;

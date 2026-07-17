@@ -7,6 +7,7 @@
 		update_frontmatter_date
 	} from '$state/Project.svelte';
 	import { ink, defineOptions, type AwaitableInstance } from 'ink-mde';
+	import { addPasteLinkHandler } from '$lib/utils/paste-link-extension';
 	import {
 		get_date_string_from_frontmatter,
 		get_yaml_value,
@@ -54,6 +55,7 @@
 	$effect(() => {
 		if (frontmatter_editor) {
 			ink_frontmatter_instance = ink(frontmatter_editor, frontmatter_options);
+			addPasteLinkHandler(frontmatter_editor);
 		}
 	});
 
@@ -71,11 +73,52 @@
 		}
 	};
 
-	const copyText = () => {
-		const html = marked.render(notes);
+	const extractLinks = (md: string) => {
+		const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+		const links: { title: string; url: string }[] = [];
+		let match;
+		while ((match = linkRegex.exec(md)) !== null) {
+			if (!match[2].startsWith('#t=')) {
+				links.push({ title: match[1], url: match[2] });
+			}
+		}
+		return links;
+	};
+
+	const mdToPlainText = (md: string, filterSubBullets = true) => {
+		const lines = md.split('\n');
+		const processed: string[] = [];
+		for (const line of lines) {
+			if (filterSubBullets && /^\s+[*-]\s/.test(line)) {
+				continue;
+			}
+			processed.push(line);
+		}
+		const html = marked.render(processed.join('\n'));
 		const element = document.createElement('div');
 		element.innerHTML = html;
-		copyToClipboard(element.textContent || '');
+		const textNodes: string[] = [];
+		element.childNodes.forEach((node) => {
+			const text = (node.textContent || '').trim();
+			if (text) textNodes.push(text);
+		});
+		return textNodes.join('\n\n');
+	};
+
+	const copyText = () => {
+		const notesLinks = extractLinks(notes);
+		let text = mdToPlainText(notes);
+		if (notesLinks.length) {
+			text += '\n\n' + notesLinks.map((l) => `${l.title} | ${l.url}`).join('\n');
+		}
+		if (sick_picks) {
+			const expanded = sick_picks.replace(
+				/\[([^\]]+)\]\(([^)]+)\)/g,
+				(_, title: string, url: string) => `${title} | ${url}`
+			);
+			text += '\n\n' + mdToPlainText(expanded, false);
+		}
+		copyToClipboard(text);
 	};
 
 	const copyHtmlWithPreservedTimestamps = () => {
@@ -218,6 +261,11 @@
 		}
 		:global(.ink-mde-editor) {
 			padding: 0;
+		}
+		@media (prefers-color-scheme: dark) {
+			:global(.cm-cursor) {
+				border-left-color: white;
+			}
 		}
 	}
 

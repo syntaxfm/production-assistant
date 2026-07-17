@@ -93,7 +93,11 @@ export function create_frontmatter(name: string) {
 title: ${title}
 date: ${date}
 url: TODO
-youtube_url: TODO`;
+youtube_url: TODO
+Hosts:
+- stolinski
+- wesbos
+- w3cj`;
 	return DEFAULT_FRONTMATTER;
 }
 

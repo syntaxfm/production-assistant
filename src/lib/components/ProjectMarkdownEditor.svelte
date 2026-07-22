@@ -2,6 +2,7 @@
 	import { app_data, type ProjectMarkdownFields } from '$state/Project.svelte';
 	import { ink, defineOptions, type AwaitableInstance } from 'ink-mde';
 	import { sick_picks, socials } from '$lib/constants/project';
+	import { addPasteLinkHandler } from '$lib/utils/paste-link-extension';
 
 	const default_values = {
 		notes: '',
@@ -50,6 +51,7 @@
 	$effect(() => {
 		if (editor) {
 			ink(editor, options);
+			addPasteLinkHandler(editor);
 		}
 	});
 </script>
@@ -78,6 +80,11 @@
 		}
 		:global(.ink-mde-editor) {
 			padding: 0;
+		}
+		@media (prefers-color-scheme: dark) {
+			:global(.cm-cursor) {
+				border-left-color: white;
+			}
 		}
 	}
 

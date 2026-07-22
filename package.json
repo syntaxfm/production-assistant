@@ -16,6 +16,8 @@
 	"license": "MIT",
 	"dependencies": {
 		"@anthropic-ai/sdk": "^0.25.0",
+		"@codemirror/state": "^6.7.1",
+		"@codemirror/view": "^6.43.6",
 		"@tauri-apps/api": "2.0.0-rc.2",
 		"@tauri-apps/plugin-fs": "2.0.0-rc.1",
 		"@tauri-apps/plugin-http": "2.0.0-rc.1",

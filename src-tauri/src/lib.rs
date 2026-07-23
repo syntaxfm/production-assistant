@@ -388,6 +388,59 @@ async fn upload_to_youtube(
     Err("Upload failed".to_string())
 }
 
+#[tauri::command]
+async fn check_for_updates(app: tauri::AppHandle) -> Result<String, String> {
+    match tauri_plugin_updater::UpdaterExt::updater(&app) {
+        Some(updater) => {
+            match updater.check().await {
+                Ok(Some(update)) => {
+                    Ok(format!("Update available: {} -> {}", env!("CARGO_PKG_VERSION"), update.version))
+                },
+                Ok(None) => {
+                    Ok(format!("You're running the latest version: {}", env!("CARGO_PKG_VERSION")))
+                },
+                Err(e) => {
+                    Err(format!("Failed to check for updates: {}", e))
+                }
+            }
+        },
+        None => {
+            Err("Updater not available".to_string())
+        }
+    }
+}
+
+#[tauri::command]
+async fn install_update(app: tauri::AppHandle) -> Result<String, String> {
+    match tauri_plugin_updater::UpdaterExt::updater(&app) {
+        Some(updater) => {
+            match updater.check().await {
+                Ok(Some(update)) => {
+                    match update.download_and_install(|_chunk_length, _content_length| {
+                        // You can use this to show progress
+                    }).await {
+                        Ok(_) => {
+                            Ok("Update installed successfully. Please restart the application.".to_string())
+                        },
+                        Err(e) => {
+                            Err(format!("Failed to install update: {}", e))
+                        }
+                    }
+                },
+                Ok(None) => {
+                    Ok("No updates available to install".to_string())
+                },
+                Err(e) => {
+                    Err(format!("Failed to check for updates: {}", e))
+                }
+            }
+        },
+        None => {
+            Err("Updater not available".to_string())
+        }
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
@@ -415,6 +468,7 @@ pub fn run() {
     builder
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_decorum::init()) // initialize the decorum plugin
+        .plugin(tauri_plugin_updater::Builder::new().build()) // initialize the updater plugin
         .setup(|app| {
             // Create a custom titlebar for main window
             // On macOS it needs hiddenTitle: true and titleBarStyle: overlay
@@ -461,6 +515,8 @@ pub fn run() {
             hide_login_window,
             login_youtube,
             upload_to_youtube,
+            check_for_updates,
+            install_update,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

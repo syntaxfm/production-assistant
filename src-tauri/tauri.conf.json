@@ -78,6 +78,12 @@
             "scope": [
                 "**"
             ]
+        },
+        "updater": {
+            "endpoints": [
+                "https://github.com/syntaxfm/production-assistant/releases/latest/download/updater.json"
+            ],
+            "dialog": true
         }
     },
     "productName": "Syntax PA",

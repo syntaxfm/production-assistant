@@ -43,6 +43,7 @@
 		"temporal-polyfill": "^0.2.5"
 	},
 	"devDependencies": {
+		"@eslint/js": "^9.36.0",
 		"@sveltejs/adapter-static": "^3.0.1",
 		"@sveltejs/kit": "^2.5.18",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",

@@ -1,0 +1,201 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+          - platform: 'ubuntu-22.04'
+            args: ''
+          - platform: 'windows-latest'
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Rust setup
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install frontend dependencies
+        run: pnpm install
+
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Syntax Production Assistant ${{ github.ref_name }}'
+          releaseBody: 'See the assets to download and install this version.'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+  create-updater-json:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Generate updater JSON
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Wait a moment for release to be fully processed
+          sleep 10
+
+          # Get the release data
+          RELEASE_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}")
+
+          # Extract version from tag (remove 'v' prefix if present)
+          VERSION="${{ github.ref_name }}"
+
+          # Get current timestamp in ISO format
+          PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          # Get release notes from the release
+          NOTES=$(echo "$RELEASE_DATA" | jq -r '.body // "Release notes"')
+
+          # Create updater JSON using Node.js for better JSON handling
+          node -e "
+          const fs = require('fs');
+          const releaseData = $RELEASE_DATA;
+          const updaterJson = {
+            version: '$VERSION',
+            notes: '$NOTES',
+            pub_date: '$PUB_DATE',
+            platforms: {}
+          };
+
+          // Process assets
+          releaseData.assets.forEach(asset => {
+            const name = asset.name;
+            const url = asset.browser_download_url;
+            let platform = '';
+            
+            // Determine platform based on asset name patterns
+            if (name.includes('aarch64-apple-darwin') && name.endsWith('.tar.gz')) {
+              platform = 'darwin-aarch64';
+            } else if (name.includes('x86_64-apple-darwin') && name.endsWith('.tar.gz')) {
+              platform = 'darwin-x86_64';
+            } else if ((name.includes('x86_64-unknown-linux') || name.includes('amd64')) && name.endsWith('.tar.gz')) {
+              platform = 'linux-x86_64';
+            } else if (name.includes('x64') && name.includes('.msi') && name.endsWith('.zip')) {
+              platform = 'windows-x86_64';
+            }
+            
+            if (platform) {
+              // Find corresponding signature file
+              const sigAsset = releaseData.assets.find(a => a.name === name + '.sig');
+              const signature = sigAsset ? 'SIGNATURE_PLACEHOLDER_' + platform : '';
+              
+              updaterJson.platforms[platform] = {
+                signature: signature,
+                url: url
+              };
+            }
+          });
+
+          fs.writeFileSync('updater.json', JSON.stringify(updaterJson, null, 2));
+          "
+
+          # Download and add actual signatures
+          for platform_data in $(jq -r '.platforms | keys[]' updater.json); do
+            url=$(jq -r ".platforms[\"$platform_data\"].url" updater.json)
+            asset_name=$(basename "$url")
+            
+            # Find signature file
+            sig_url=$(echo "$RELEASE_DATA" | jq -r ".assets[] | select(.name == \"${asset_name}.sig\") | .browser_download_url")
+            
+            if [ "$sig_url" != "null" ] && [ "$sig_url" != "" ]; then
+              signature=$(curl -s "$sig_url")
+              # Update JSON with actual signature
+              jq --arg platform "$platform_data" --arg signature "$signature" \
+                '.platforms[$platform].signature = $signature' \
+                updater.json > updater.json.tmp && mv updater.json.tmp updater.json
+            else
+              # Remove signature placeholder if no signature file found
+              jq --arg platform "$platform_data" \
+                'del(.platforms[$platform].signature)' \
+                updater.json > updater.json.tmp && mv updater.json.tmp updater.json
+            fi
+          done
+
+          echo "Generated updater.json:"
+          cat updater.json
+
+      - name: Upload updater JSON to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get release ID
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" | jq -r .id)
+
+          # Upload the updater.json file
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @updater.json \
+            "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=updater.json"
+
+      - name: Publish release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get release ID and publish it
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.ref_name }}" | jq -r .id)
+
+          curl -X PATCH \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{"draft": false}' \
+            "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID"
